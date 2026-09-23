@@ -35,59 +35,45 @@ export function HomeSections({ products, collections, faqs, reviews }: HomeSecti
             </h2>
           </div>
 
-          {/* Filter Tabs */}
+          {/* Dynamic Filter Tabs */}
           <div className="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-none">
             <button
               onClick={() => setActiveTab('all')}
-              className={`text-xs uppercase tracking-widest px-3 py-1.5 border transition-all ${
+              className={`text-xs uppercase tracking-widest px-3.5 py-1.5 border transition-all whitespace-nowrap ${
                 activeTab === 'all'
                   ? 'border-white text-white bg-neutral-900'
                   : 'border-neutral-800 text-neutral-400 hover:text-white'
               }`}
             >
-              All Pieces
+              All Silhouettes ({products.length})
             </button>
-            <button
-              onClick={() => setActiveTab('core-essentials')}
-              className={`text-xs uppercase tracking-widest px-3 py-1.5 border transition-all ${
-                activeTab === 'core-essentials'
-                  ? 'border-white text-white bg-neutral-900'
-                  : 'border-neutral-800 text-neutral-400 hover:text-white'
-              }`}
-            >
-              Core
-            </button>
-            <button
-              onClick={() => setActiveTab('silk-modal')}
-              className={`text-xs uppercase tracking-widest px-3 py-1.5 border transition-all ${
-                activeTab === 'silk-modal'
-                  ? 'border-white text-white bg-neutral-900'
-                  : 'border-neutral-800 text-neutral-400 hover:text-white'
-              }`}
-            >
-              Silk
-            </button>
-            <button
-              onClick={() => setActiveTab('contour-sculpt')}
-              className={`text-xs uppercase tracking-widest px-3 py-1.5 border transition-all ${
-                activeTab === 'contour-sculpt'
-                  ? 'border-white text-white bg-neutral-900'
-                  : 'border-neutral-800 text-neutral-400 hover:text-white'
-              }`}
-            >
-              Sculpt
-            </button>
+            {collections.map((col) => (
+              <button
+                key={col.handle}
+                onClick={() => setActiveTab(col.handle)}
+                className={`text-xs uppercase tracking-widest px-3.5 py-1.5 border transition-all whitespace-nowrap ${
+                  activeTab === col.handle
+                    ? 'border-white text-white bg-neutral-900'
+                    : 'border-neutral-800 text-neutral-400 hover:text-white'
+                }`}
+              >
+                {col.title}
+              </button>
+            ))}
           </div>
         </div>
 
-        <ProductGrid products={filteredProducts} />
+        <ProductGrid
+          products={filteredProducts}
+          emptyMessage="No pieces currently in this archive selection."
+        />
 
         <div className="mt-12 text-center">
           <Link
             href="/collections"
-            className="inline-block px-8 py-3 border border-neutral-700 hover:border-white text-xs uppercase tracking-widest text-white transition-colors"
+            className="inline-block px-8 py-3.5 border border-neutral-700 hover:border-white text-xs uppercase tracking-widest text-white transition-colors font-medium"
           >
-            View Full Lookbook
+            Explore Complete Archive Lookbook
           </Link>
         </div>
       </section>
@@ -118,11 +104,11 @@ export function HomeSections({ products, collections, faqs, reviews }: HomeSecti
             <div className="grid grid-cols-2 gap-6 pt-4 border-t border-neutral-800">
               <div>
                 <span className="block font-mono text-xl text-white">100%</span>
-                <span className="text-[11px] uppercase tracking-wider text-neutral-400">OEKO-TEX Certified</span>
+                <span className="text-[11px] uppercase tracking-wider text-neutral-400 font-mono">OEKO-TEX Certified</span>
               </div>
               <div>
                 <span className="block font-mono text-xl text-white">0.0g</span>
-                <span className="text-[11px] uppercase tracking-wider text-neutral-400">Unnecessary Hardware</span>
+                <span className="text-[11px] uppercase tracking-wider text-neutral-400 font-mono">Unnecessary Hardware</span>
               </div>
             </div>
           </div>
@@ -130,47 +116,49 @@ export function HomeSections({ products, collections, faqs, reviews }: HomeSecti
       </section>
 
       {/* Collections Grid Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 text-center max-w-xl mx-auto">
-          <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 font-mono">
-            Structured Archives
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-light text-white tracking-tight uppercase mt-1">
-            Collections
-          </h2>
-        </div>
+      {collections.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-10 text-center max-w-xl mx-auto">
+            <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 font-mono">
+              Structured Archives
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-light text-white tracking-tight uppercase mt-1">
+              Shop by Collection
+            </h2>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {collections.map((col) => (
-            <Link
-              key={col.id}
-              href={`/collections/${col.handle}`}
-              className="group relative aspect-[3/4] bg-neutral-900 overflow-hidden flex flex-col justify-end p-6 border border-neutral-900"
-            >
-              {col.image && (
-                <NextImage
-                  src={col.image.url}
-                  alt={col.image.altText || col.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-80 group-hover:opacity-90"
-                />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-              <div className="relative z-10 space-y-1">
-                <span className="text-[9px] uppercase tracking-[0.25em] text-neutral-400 font-mono">
-                  Collection
-                </span>
-                <h3 className="text-base font-light text-white uppercase tracking-widest group-hover:translate-x-1 transition-transform">
-                  {col.title}
-                </h3>
-                <p className="text-[11px] text-neutral-400 line-clamp-2 font-light">
-                  {col.description}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {collections.slice(0, 3).map((col) => (
+              <Link
+                key={col.id}
+                href={`/collections/${col.handle}`}
+                className="group relative aspect-[3/4] bg-neutral-900 overflow-hidden flex flex-col justify-end p-6 border border-neutral-900"
+              >
+                {col.image && (
+                  <NextImage
+                    src={col.image.url}
+                    alt={col.image.altText || col.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-80 group-hover:opacity-90"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                <div className="relative z-10 space-y-1">
+                  <span className="text-[9px] uppercase tracking-[0.25em] text-neutral-400 font-mono">
+                    Collection
+                  </span>
+                  <h3 className="text-base font-light text-white uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                    {col.title}
+                  </h3>
+                  <p className="text-[11px] text-neutral-400 line-clamp-2 font-light">
+                    {col.description}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Verified Reviews Carousel / Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -206,7 +194,7 @@ export function HomeSections({ products, collections, faqs, reviews }: HomeSecti
                 "{rev.content}"
               </p>
               {rev.fitFeedback && (
-                <div className="text-[10px] uppercase tracking-wider text-neutral-400 pt-2 border-t border-neutral-800">
+                <div className="text-[10px] uppercase tracking-wider text-neutral-400 pt-2 border-t border-neutral-800 font-mono">
                   Fit: <span className="text-neutral-300">{rev.fitFeedback}</span>
                 </div>
               )}
@@ -258,7 +246,7 @@ export function HomeSections({ products, collections, faqs, reviews }: HomeSecti
             href="/faq"
             className="text-xs uppercase tracking-widest text-neutral-400 hover:text-white underline underline-offset-4"
           >
-            Visit Complete FAQ & Care Guide
+            Visit Complete FAQ & Care Guide →
           </Link>
         </div>
       </section>

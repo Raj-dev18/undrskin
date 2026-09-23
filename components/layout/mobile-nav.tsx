@@ -3,15 +3,16 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MOCK_COLLECTIONS } from '@/lib/mock-data';
+import { Collection } from '@/types/product';
 
 interface MobileNavProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenSearch: () => void;
+  collections?: Collection[];
 }
 
-export function MobileNav({ isOpen, onClose, onOpenSearch }: MobileNavProps) {
+export function MobileNav({ isOpen, onClose, onOpenSearch, collections = [] }: MobileNavProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -72,7 +73,7 @@ export function MobileNav({ isOpen, onClose, onOpenSearch }: MobileNavProps) {
                         All Silhouettes
                       </Link>
                     </li>
-                    {MOCK_COLLECTIONS.map((c) => (
+                    {collections.map((c) => (
                       <li key={c.handle}>
                         <Link
                           href={`/collections/${c.handle}`}
@@ -92,13 +93,13 @@ export function MobileNav({ isOpen, onClose, onOpenSearch }: MobileNavProps) {
                   </span>
                   <ul className="space-y-3 pl-1 text-xs uppercase tracking-widest text-neutral-400">
                     <li>
-                      <Link href="/faq" onClick={onClose} className="hover:text-white transition-colors">
-                        Client Care & FAQ
+                      <Link href="/cart" onClick={onClose} className="hover:text-white transition-colors">
+                        Shopping Bag
                       </Link>
                     </li>
                     <li>
-                      <Link href="/collections/core-essentials" onClick={onClose} className="hover:text-white transition-colors">
-                        Material Philosophy
+                      <Link href="/faq" onClick={onClose} className="hover:text-white transition-colors">
+                        Client Care & FAQ
                       </Link>
                     </li>
                   </ul>

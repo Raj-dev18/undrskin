@@ -9,7 +9,7 @@ interface ProductDetailsProps {
 }
 
 export function ProductDetails({ product }: ProductDetailsProps) {
-  const { addItem } = useCart();
+  const { addItem, openCart } = useCart();
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     product.options.forEach((opt) => {
@@ -20,10 +20,12 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     return initial;
   });
 
+  const [quantity, setQuantity] = useState(1);
   const [activeAccordion, setActiveAccordion] = useState<string | null>('details');
   const [addedAnimation, setAddedAnimation] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-  // Match the selected variant based on selectedOptions
+  // Match selected variant
   const selectedVariant: ProductVariant =
     product.variants.find((v) =>
       v.selectedOptions.every((so) => selectedOptions[so.name] === so.value)
@@ -37,26 +39,44 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   };
 
   const handleAddToCart = () => {
-    addItem(product, selectedVariant);
+    if (!selectedVariant || !selectedVariant.availableForSale) return;
+    addItem(product, selectedVariant, quantity);
     setAddedAnimation(true);
     setTimeout(() => setAddedAnimation(false), 2000);
   };
 
+  const handleBuyNow = async () => {
+    if (!selectedVariant || !selectedVariant.availableForSale || isCheckingOut) return;
+    setIsCheckingOut(true);
+    addItem(product, selectedVariant, quantity);
+    openCart();
+    setIsCheckingOut(false);
+  };
+
   return (
     <div className="space-y-8">
-      {/* Title & Price */}
+      {/* Title, Sku & Price */}
       <div className="space-y-2 border-b border-neutral-900 pb-6">
-        <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400 font-mono">
-          {product.collections[0]?.replace('-', ' ') || 'Studio Collection'}
-        </span>
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400 font-mono">
+            {product.subtitle || product.collections[0]?.replace('-', ' ') || 'Studio Collection'}
+          </span>
+          {selectedVariant?.sku && (
+            <span className="text-[10px] uppercase tracking-wider text-neutral-500 font-mono">
+              SKU: {selectedVariant.sku}
+            </span>
+          )}
+        </div>
+
         <h1 className="text-2xl sm:text-3xl font-light text-white tracking-tight uppercase">
           {product.title}
         </h1>
+
         <div className="flex items-center space-x-3 pt-1">
           <span className="text-lg font-mono text-white">
-            ${selectedVariant.price.amount.toFixed(2)}
+            ${selectedVariant ? selectedVariant.price.amount.toFixed(2) : product.price.amount.toFixed(2)}
           </span>
-          {selectedVariant.price.compareAtAmount && (
+          {selectedVariant?.price.compareAtAmount && (
             <span className="text-sm font-mono text-neutral-500 line-through">
               ${selectedVariant.price.compareAtAmount.toFixed(2)}
             </span>
@@ -67,60 +87,122 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         </div>
       </div>
 
-      {/* Variant Selectors */}
+      {/* Variant Option Selectors (Color Swatches & Size Buttons) */}
       <div className="space-y-6">
-        {product.options.map((option) => (
-          <div key={option.id || option.name} className="space-y-2.5">
-            <div className="flex justify-between text-xs uppercase tracking-widest">
-              <span className="text-neutral-400">{option.name}</span>
-              <span className="text-white font-medium">
-                {selectedOptions[option.name]}
-              </span>
-            </div>
+        {product.options.map((option) => {
+          const isColorOption = option.name.toLowerCase().includes('color') || option.name.toLowerCase().includes('shade');
 
-            <div className="flex flex-wrap gap-2">
-              {option.values.map((optVal) => {
-                const isSelected = selectedOptions[option.name] === optVal.value;
-                return (
-                  <button
-                    key={optVal.value}
-                    type="button"
-                    onClick={() => handleOptionChange(option.name, optVal.value)}
-                    className={`px-4 py-2 text-xs uppercase tracking-wider border transition-all ${
-                      isSelected
-                        ? 'border-white bg-white text-black font-medium'
-                        : 'border-neutral-800 text-neutral-300 hover:border-neutral-600'
-                    }`}
-                  >
-                    {optVal.name || optVal.value}
-                  </button>
-                );
-              })}
+          return (
+            <div key={option.id || option.name} className="space-y-2.5">
+              <div className="flex justify-between text-xs uppercase tracking-widest">
+                <span className="text-neutral-400">{option.name}</span>
+                <span className="text-white font-medium">
+                  {selectedOptions[option.name]}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2.5">
+                {option.values.map((optVal) => {
+                  const isSelected = selectedOptions[option.name] === optVal.value;
+
+                  if (isColorOption && optVal.hexColor) {
+                    return (
+                      <button
+                        key={optVal.value}
+                        type="button"
+                        onClick={() => handleOptionChange(option.name, optVal.value)}
+                        className={`relative w-8 h-8 rounded-full border-2 transition-all p-0.5 ${
+                          isSelected ? 'border-white scale-110' : 'border-transparent hover:border-neutral-700'
+                        }`}
+                        title={optVal.name}
+                        aria-label={optVal.name}
+                      >
+                        <span
+                          className="block w-full h-full rounded-full border border-black/20"
+                          style={{ backgroundColor: optVal.hexColor }}
+                        />
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={optVal.value}
+                      type="button"
+                      onClick={() => handleOptionChange(option.name, optVal.value)}
+                      className={`px-4 py-2 text-xs uppercase tracking-wider border transition-all ${
+                        isSelected
+                          ? 'border-white bg-white text-black font-medium'
+                          : 'border-neutral-800 text-neutral-300 hover:border-neutral-600'
+                      }`}
+                    >
+                      {optVal.name || optVal.value}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+          );
+        })}
+
+        {/* Quantity Selector */}
+        <div className="space-y-2 pt-1">
+          <label className="text-xs uppercase tracking-widest text-neutral-400 block">
+            Quantity
+          </label>
+          <div className="flex items-center w-32 border border-neutral-800 bg-neutral-950">
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
+            >
+              -
+            </button>
+            <span className="flex-1 text-center font-mono text-xs text-white">
+              {quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => q + 1)}
+              className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
+            >
+              +
+            </button>
           </div>
-        ))}
+        </div>
       </div>
 
-      {/* Add To Cart CTA */}
+      {/* CTA Buttons */}
       <div className="space-y-3 pt-2">
         <button
           type="button"
           onClick={handleAddToCart}
-          disabled={!selectedVariant.availableForSale}
+          disabled={!selectedVariant?.availableForSale}
           className={`w-full py-4 text-xs uppercase tracking-widest font-medium transition-all duration-300 ${
-            !selectedVariant.availableForSale
+            !selectedVariant?.availableForSale
               ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
               : addedAnimation
-              ? 'bg-green-900/80 text-white border border-green-700'
+              ? 'bg-neutral-900 text-white border border-white'
               : 'bg-white text-black hover:bg-neutral-200 active:scale-[0.99]'
           }`}
         >
-          {!selectedVariant.availableForSale
+          {!selectedVariant?.availableForSale
             ? 'Currently Unavailable'
             : addedAnimation
             ? 'Added to Bag ✓'
-            : 'Add to Bag'}
+            : `Add to Bag — $${((selectedVariant?.price.amount || product.price.amount) * quantity).toFixed(2)}`}
         </button>
+
+        {selectedVariant?.availableForSale && (
+          <button
+            type="button"
+            onClick={handleBuyNow}
+            disabled={isCheckingOut}
+            className="w-full py-3.5 border border-neutral-700 hover:border-white text-white text-xs uppercase tracking-widest font-medium transition-colors"
+          >
+            {isCheckingOut ? 'Preparing Bag...' : 'Proceed to Bag / Buy Now'}
+          </button>
+        )}
 
         <p className="text-[10px] text-center uppercase tracking-widest text-neutral-400 font-mono">
           Free Express Shipping over $150 • 30-Day Discreet Returns
@@ -171,7 +253,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           </button>
           {activeAccordion === 'fit' && (
             <div className="pb-4 text-xs text-neutral-400 font-light leading-relaxed space-y-2">
-              <p>True to size. Tailored with multidirectional elasticity to hug the natural contours of the body without constriction.</p>
+              <p>True to size. Engineered with multidirectional elasticity to hug natural contours without constriction.</p>
               <p>Model is 5'9" (175cm) wearing Size Small.</p>
             </div>
           )}

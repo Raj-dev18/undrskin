@@ -2,11 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Collection } from '@/types/product';
 import { useCart } from '@/components/cart/cart-context';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { SearchModal } from '@/components/ui/search-modal';
 
-export function Header() {
+interface HeaderProps {
+  collections?: Collection[];
+}
+
+export function Header({ collections = [] }: HeaderProps) {
   const { cart, openCart } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,6 +24,9 @@ export function Header() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Display first 4 collections or standard directory
+  const navCollections = collections.slice(0, 4);
 
   return (
     <>
@@ -50,14 +58,17 @@ export function Header() {
               <Link href="/collections" className="hover:text-white transition-colors">
                 All Silhouettes
               </Link>
-              <Link href="/collections/core-essentials" className="hover:text-white transition-colors">
-                Core Essentials
-              </Link>
-              <Link href="/collections/silk-modal" className="hover:text-white transition-colors">
-                Silk & Modal
-              </Link>
-              <Link href="/collections/contour-sculpt" className="hover:text-white transition-colors">
-                Contour Sculpt
+              {navCollections.map((col) => (
+                <Link
+                  key={col.handle}
+                  href={`/collections/${col.handle}`}
+                  className="hover:text-white transition-colors"
+                >
+                  {col.title}
+                </Link>
+              ))}
+              <Link href="/faq" className="hover:text-white transition-colors">
+                Client Care
               </Link>
             </nav>
 
@@ -103,6 +114,7 @@ export function Header() {
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         onOpenSearch={() => setSearchOpen(true)}
+        collections={collections}
       />
 
       <SearchModal

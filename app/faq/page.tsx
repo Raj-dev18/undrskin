@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import { Metadata } from 'next';
 import { getFAQs } from '@/lib/shopify';
+import { ClientFaqAccordion } from '@/components/ui/client-faq-accordion';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Client Services & FAQ — UNDRSKIN',
   description: 'Frequently asked questions regarding sizing, silk care, international delivery, and discreet returns.',
 };
@@ -11,6 +13,15 @@ export default async function FAQPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+      {/* Breadcrumb */}
+      <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-neutral-500 mb-8">
+        <Link href="/" className="hover:text-white transition-colors">
+          Home
+        </Link>
+        <span>/</span>
+        <span className="text-white">Assistance & FAQ</span>
+      </nav>
+
       <div className="text-center max-w-xl mx-auto mb-16">
         <span className="text-[10px] uppercase tracking-[0.3em] text-neutral-400 font-mono">
           Assistance & Concierge
@@ -23,25 +34,10 @@ export default async function FAQPage() {
         </p>
       </div>
 
-      <div className="space-y-4">
-        {faqs.map((faq) => (
-          <details
-            key={faq.id}
-            className="group bg-neutral-900/30 border border-neutral-800/80 p-6 transition-all duration-300 open:border-neutral-700"
-          >
-            <summary className="flex items-center justify-between cursor-pointer list-none text-xs uppercase tracking-widest text-neutral-200 group-hover:text-white select-none">
-              <span className="pr-6 leading-relaxed font-normal">{faq.question}</span>
-              <span className="text-neutral-500 group-hover:text-white transition-transform duration-300 group-open:rotate-45 font-mono text-base flex-shrink-0">
-                +
-              </span>
-            </summary>
-            <p className="mt-4 text-xs font-light text-neutral-400 leading-relaxed pt-4 border-t border-neutral-800/60">
-              {faq.answer}
-            </p>
-          </details>
-        ))}
-      </div>
+      {/* Categorized and searchable accordion */}
+      <ClientFaqAccordion faqs={faqs} />
 
+      {/* Concierge Contact Box */}
       <div className="mt-20 p-8 border border-neutral-800 bg-neutral-900/20 text-center max-w-xl mx-auto space-y-4">
         <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400 font-mono">
           Need bespoke assistance?

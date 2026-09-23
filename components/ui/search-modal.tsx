@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import NextImage from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MOCK_PRODUCTS } from '@/lib/mock-data';
+import { Product } from '@/types/product';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -13,10 +14,14 @@ interface SearchModalProps {
 
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState('');
+  const [results, setResults] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (!isOpen) {
       setQuery('');
+      setResults([]);
     }
   }, [isOpen]);
 
@@ -30,17 +35,39 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const filteredProducts = useMemo(() => {
-    if (!query.trim()) return [];
-    const q = query.toLowerCase();
-    return MOCK_PRODUCTS.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.tags.some((t) => t.toLowerCase().includes(q)) ||
-        p.collections.some((c) => c.toLowerCase().includes(q))
-    );
+  // Debounced live search
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      setIsLoading(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          setResults(data.products || []);
+        }
+      } catch (err) {
+        console.error('Search fetch error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, [query]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      onClose();
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -57,7 +84,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Search Input Bar */}
-            <div className="flex items-center px-6 py-4 border-b border-neutral-800">
+            <form onSubmit={handleSubmit} className="flex items-center px-6 py-4 border-b border-neutral-800">
               <svg className="w-5 h-5 text-neutral-400 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -69,26 +96,31 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 onChange={(e) => setQuery(e.target.value)}
                 className="w-full bg-transparent text-sm text-white placeholder:text-neutral-500 focus:outline-none tracking-wide"
               />
+              {isLoading && (
+                <div className="w-4 h-4 border border-neutral-500 border-t-white rounded-full animate-spin mr-3" />
+              )}
               <button
+                type="button"
                 onClick={onClose}
                 className="text-neutral-500 hover:text-white p-1 text-xs uppercase font-mono tracking-widest"
               >
                 ESC
               </button>
-            </div>
+            </form>
 
             {/* Results or Suggestions */}
             <div className="max-h-[60vh] overflow-y-auto p-6">
               {query.trim() === '' ? (
                 <div className="space-y-4">
                   <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400 font-mono block">
-                    Popular Searches
+                    Curated Themes
                   </span>
                   <div className="flex flex-wrap gap-2">
-                    {['Silk Slip', 'Zero-Pressure Bralette', 'Contour Brief', 'Modal Camisole', 'Core Essentials'].map(
+                    {['Silk', 'Sculpt', 'Modal', 'Bralette', 'Bodysuit', 'Brief'].map(
                       (item) => (
                         <button
                           key={item}
+                          type="button"
                           onClick={() => setQuery(item)}
                           className="px-3 py-1.5 bg-neutral-900 border border-neutral-800 text-xs text-neutral-300 hover:text-white hover:border-neutral-700 transition-colors uppercase tracking-wider"
                         >
@@ -98,7 +130,19 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                     )}
                   </div>
                 </div>
-              ) : filteredProducts.length === 0 ? (
+              ) : isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-4 p-3 border border-neutral-900 animate-pulse">
+                      <div className="w-12 h-16 bg-neutral-900" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-neutral-900 w-1/2" />
+                        <div className="h-2 bg-neutral-900 w-1/4" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : results.length === 0 ? (
                 <div className="py-12 text-center space-y-2">
                   <p className="text-xs uppercase tracking-widest text-neutral-400">
                     No results found for &quot;{query}&quot;
@@ -109,10 +153,18 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400 font-mono block mb-2">
-                    Archive Results ({filteredProducts.length})
-                  </span>
-                  {filteredProducts.map((product) => (
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400 font-mono block">
+                      Live Results ({results.length})
+                    </span>
+                    <button
+                      onClick={handleSubmit}
+                      className="text-[10px] uppercase tracking-wider text-neutral-400 hover:text-white underline underline-offset-2"
+                    >
+                      View All on Search Page →
+                    </button>
+                  </div>
+                  {results.map((product) => (
                     <Link
                       key={product.id}
                       href={`/products/${product.handle}`}

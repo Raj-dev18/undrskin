@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import NextImage from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,11 +8,48 @@ import { useCart } from './cart-context';
 
 export function CartDrawer() {
   const { cart, isCartOpen, closeCart, updateQuantity, removeItem } = useCart();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   const freeShippingThreshold = 150;
   const currentTotal = cart.cost.subtotalAmount.amount;
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - currentTotal);
   const shippingProgress = Math.min(100, (currentTotal / freeShippingThreshold) * 100);
+
+  const handleCheckout = async () => {
+    if (cart.lines.length === 0 || isCheckingOut) return;
+
+    setIsCheckingOut(true);
+    setCheckoutError(null);
+
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: cart.lines.map((line) => ({
+            variantId: line.variant.id,
+            quantity: line.quantity,
+          })),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.checkoutUrl) {
+        throw new Error(data.error || 'Failed to initialize secure checkout.');
+      }
+
+      // Redirect to official Shopify Checkout
+      window.location.href = data.checkoutUrl;
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      setCheckoutError(err.message || 'Unable to connect to Shopify checkout. Please try again.');
+      setIsCheckingOut(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -72,6 +109,13 @@ export function CartDrawer() {
                 />
               </div>
             </div>
+
+            {/* Checkout Error Banner */}
+            {checkoutError && (
+              <div className="mx-6 mt-4 p-3 bg-red-950/40 border border-red-800 text-[11px] text-red-200 leading-relaxed">
+                {checkoutError}
+              </div>
+            )}
 
             {/* Cart Lines */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -184,13 +228,33 @@ export function CartDrawer() {
                 </div>
 
                 <button
-                  onClick={() => alert('Proceeding to Secure Shopify Checkout...')}
-                  className="w-full py-3.5 bg-white text-black text-xs uppercase tracking-widest font-medium hover:bg-neutral-200 transition-colors flex items-center justify-center space-x-2"
+                  onClick={handleCheckout}
+                  disabled={isCheckingOut}
+                  className="w-full py-3.5 bg-white text-black text-xs uppercase tracking-widest font-medium hover:bg-neutral-200 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
                 >
-                  <span>Checkout</span>
-                  <span>—</span>
-                  <span>${cart.cost.subtotalAmount.amount.toFixed(2)}</span>
+                  {isCheckingOut ? (
+                    <span className="flex items-center space-x-2">
+                      <div className="w-3.5 h-3.5 border border-black border-t-transparent rounded-full animate-spin" />
+                      <span>Connecting to Shopify Checkout...</span>
+                    </span>
+                  ) : (
+                    <>
+                      <span>Checkout</span>
+                      <span>—</span>
+                      <span>${cart.cost.subtotalAmount.amount.toFixed(2)}</span>
+                    </>
+                  )}
                 </button>
+
+                <div className="text-center">
+                  <Link
+                    href="/cart"
+                    onClick={closeCart}
+                    className="text-[11px] uppercase tracking-wider text-neutral-400 hover:text-white underline underline-offset-2"
+                  >
+                    View Bag Details Page
+                  </Link>
+                </div>
 
                 <p className="text-[10px] text-center uppercase tracking-widest text-neutral-400 font-mono">
                   Discreet Packaging • Carbon Neutral Delivery • 30-Day Returns
