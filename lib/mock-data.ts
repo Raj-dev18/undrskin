@@ -1,0 +1,653 @@
+import { Product, Collection, FAQItem, Review } from '@/types/product';
+
+export const MOCK_COLLECTIONS: Collection[] = [
+  {
+    id: 'col-core-essentials',
+    handle: 'core-essentials',
+    title: 'Core Essentials',
+    description: 'Foundational pieces engineered for day-to-night seamless transition, sculpting micro-fiber, and breathable comfort.',
+    image: {
+      id: 'col-img-1',
+      url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
+      altText: 'UndrSkin Core Essentials Collection',
+    },
+    productCount: 4,
+  },
+  {
+    id: 'col-silk-modal',
+    handle: 'silk-modal',
+    title: 'Silk & Modal',
+    description: 'Ultra-refined natural blends delivering whisper-light drape, thermal regulation, and sensorial luxury.',
+    image: {
+      id: 'col-img-2',
+      url: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80',
+      altText: 'UndrSkin Silk & Modal Collection',
+    },
+    productCount: 3,
+  },
+  {
+    id: 'col-contour-sculpt',
+    handle: 'contour-sculpt',
+    title: 'Contour Sculpt',
+    description: 'Targeted compression zones that smooth, shape, and support without restriction or visible seams.',
+    image: {
+      id: 'col-img-3',
+      url: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=80',
+      altText: 'UndrSkin Contour Sculpt Collection',
+    },
+    productCount: 3,
+  },
+  {
+    id: 'col-new-arrivals',
+    handle: 'new-arrivals',
+    title: 'New Arrivals',
+    description: 'Fresh architectural cuts and seasonal neutral pigments inspired by modern earth ceramics and natural textures.',
+    image: {
+      id: 'col-img-4',
+      url: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1200&q=80',
+      altText: 'UndrSkin New Arrivals Collection',
+    },
+    productCount: 4,
+  },
+];
+
+export const MOCK_REVIEWS: Review[] = [
+  {
+    id: 'rev-1',
+    author: 'Elena R.',
+    rating: 5,
+    title: 'Literally feels like second skin',
+    content: 'The fabric quality is unreal. It holds you in just enough without suffocating, and under sheer dresses it disappears completely.',
+    date: '2 days ago',
+    verifiedBuyer: true,
+    fitFeedback: 'True to size',
+  },
+  {
+    id: 'rev-2',
+    author: 'Siobhan K.',
+    rating: 5,
+    title: 'Best wardrobe investment this year',
+    content: 'I ordered two colors and came back for the rest. The neckline sits impeccably and survives gentle washing without pill or loss of compression.',
+    date: '1 week ago',
+    verifiedBuyer: true,
+    fitFeedback: 'True to size',
+  },
+  {
+    id: 'rev-3',
+    author: 'Camille V.',
+    rating: 5,
+    title: 'Minimalism executed to perfection',
+    content: 'No harsh tags, no digging straps, and the nude tone actually matches muted skin undertones gracefully. Worth every penny.',
+    date: '2 weeks ago',
+    verifiedBuyer: true,
+    fitFeedback: 'True to size',
+  },
+];
+
+export const MOCK_FAQS: FAQItem[] = [
+  {
+    id: 'faq-1',
+    category: 'Sizing & Fit',
+    question: 'How do I choose the right size?',
+    answer: 'Our pieces are tailored with high-recovery 4-way stretch. We recommend ordering your standard clothing size for comfortable compression, or sizing down one size if you prefer a firm, high-sculpt fit.',
+  },
+  {
+    id: 'faq-2',
+    category: 'Care & Wash',
+    question: 'What is the recommended garment care?',
+    answer: 'Machine wash on cold (30°C/85°F) on gentle cycle with similar neutral colors. Lay flat to dry or tumble dry on lowest temperature. Do not bleach or dry clean to preserve elasticity.',
+  },
+  {
+    id: 'faq-3',
+    category: 'Shipping & Delivery',
+    question: 'What are your shipping times and thresholds?',
+    answer: 'We provide complimentary carbon-neutral shipping on orders exceeding . Standard domestic delivery takes 2–4 business days. Expedited next-day options are available at checkout.',
+  },
+  {
+    id: 'faq-4',
+    category: 'Returns & Exchanges',
+    question: 'What is your return policy?',
+    answer: 'We gladly offer 30-day hassle-free returns on unworn items with tags attached and protective adhesive liners intact. Return labels are generated instantly in our self-service portal.',
+  },
+  {
+    id: 'faq-5',
+    category: 'Sustainability',
+    question: 'How are UndrSkin fabrics sourced?',
+    answer: 'Our textiles are OEKO-TEX Standard 100 certified, crafted from 78% post-consumer recycled polyamide and 22% high-grade elastane manufactured in an energy-neutral European facility.',
+  },
+];
+
+export const MOCK_PRODUCTS: Product[] = [
+  {
+    id: 'prod-seamless-bodysuit',
+    handle: 'second-skin-seamless-bodysuit',
+    title: 'Second-Skin Seamless Bodysuit',
+    subtitle: 'Thong back / Square neckline / Micro-ribbed compression',
+    description: 'An architectural base layer designed with bonded edges and dual-layer sculpting mesh. Seamlessly transitions under denim, tailoring, or sheer evening wear.',
+    details: [
+      'Square neckline with bonded non-chafing straps',
+      'Thong back with snap button closure for easy wear',
+      'Targeted midsection compression and gentle bust lift',
+      'Laser-cut raw hem leg openings that remain invisible under clothing',
+    ],
+    fabricAndCare: [
+      '78% Recycled Polyamide, 22% Elastane',
+      'OEKO-TEX Standard 100 Certified',
+      'Machine wash gentle cycle cold, lay flat to dry',
+      'Do not iron or dry clean',
+    ],
+    shippingAndReturns: [
+      'Complimentary carbon-neutral shipping on orders over ',
+      '30-day domestic returns in original unworn packaging',
+      'Eco-friendly compostable mailer bags',
+    ],
+    price: {
+      amount: 78,
+      currencyCode: 'USD',
+      compareAtAmount: 94,
+    },
+    featuredImage: {
+      id: 'img-bodysuit-1',
+      url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80',
+      altText: 'Second-Skin Seamless Bodysuit Front View',
+    },
+    images: [
+      {
+        id: 'img-bodysuit-1',
+        url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80',
+        altText: 'Second-Skin Seamless Bodysuit Studio Front',
+      },
+      {
+        id: 'img-bodysuit-2',
+        url: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1000&q=80',
+        altText: 'Second-Skin Seamless Bodysuit Detail and Texture',
+      },
+      {
+        id: 'img-bodysuit-3',
+        url: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=80',
+        altText: 'Second-Skin Seamless Bodysuit Side Profile',
+      },
+      {
+        id: 'img-bodysuit-4',
+        url: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1000&q=80',
+        altText: 'Second-Skin Seamless Bodysuit Editorial Movement',
+      },
+    ],
+    options: [
+      {
+        id: 'opt-color',
+        name: 'Color',
+        values: [
+          { name: 'Onyx', value: 'onyx', hexColor: '#171717', inStock: true },
+          { name: 'Espresso', value: 'espresso', hexColor: '#3a2e2b', inStock: true },
+          { name: 'Clay', value: 'clay', hexColor: '#a68a7c', inStock: true },
+          { name: 'Chalk', value: 'chalk', hexColor: '#f1ede4', inStock: true },
+        ],
+      },
+      {
+        id: 'opt-size',
+        name: 'Size',
+        values: [
+          { name: 'XS', value: 'xs', inStock: true },
+          { name: 'S', value: 's', inStock: true },
+          { name: 'M', value: 'm', inStock: true },
+          { name: 'L', value: 'l', inStock: true },
+          { name: 'XL', value: 'xl', inStock: false },
+        ],
+      },
+    ],
+    variants: [
+      {
+        id: 'var-sb-onyx-xs',
+        title: 'Onyx / XS',
+        sku: 'US-SB-01-ONX-XS',
+        availableForSale: true,
+        price: { amount: 78, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'onyx' }, { name: 'Size', value: 'xs' }],
+      },
+      {
+        id: 'var-sb-onyx-s',
+        title: 'Onyx / S',
+        sku: 'US-SB-01-ONX-S',
+        availableForSale: true,
+        price: { amount: 78, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'onyx' }, { name: 'Size', value: 's' }],
+      },
+      {
+        id: 'var-sb-onyx-m',
+        title: 'Onyx / M',
+        sku: 'US-SB-01-ONX-M',
+        availableForSale: true,
+        price: { amount: 78, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'onyx' }, { name: 'Size', value: 'm' }],
+      },
+      {
+        id: 'var-sb-onyx-l',
+        title: 'Onyx / L',
+        sku: 'US-SB-01-ONX-L',
+        availableForSale: true,
+        price: { amount: 78, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'onyx' }, { name: 'Size', value: 'l' }],
+      },
+      {
+        id: 'var-sb-clay-s',
+        title: 'Clay / S',
+        sku: 'US-SB-01-CLY-S',
+        availableForSale: true,
+        price: { amount: 78, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'clay' }, { name: 'Size', value: 's' }],
+      },
+      {
+        id: 'var-sb-clay-m',
+        title: 'Clay / M',
+        sku: 'US-SB-01-CLY-M',
+        availableForSale: true,
+        price: { amount: 78, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'clay' }, { name: 'Size', value: 'm' }],
+      },
+    ],
+    tags: ['bodysuit', 'compression', 'seamless', 'bestseller'],
+    collections: ['core-essentials', 'contour-sculpt', 'new-arrivals'],
+    availableForSale: true,
+    badge: 'BESTSELLER',
+    rating: 4.9,
+    reviewCount: 148,
+    reviews: MOCK_REVIEWS,
+  },
+  {
+    id: 'prod-silk-modal-slip',
+    handle: 'silk-modal-lounge-slip',
+    title: 'Silk Modal Lounge Slip',
+    subtitle: 'Bias cut / Adjustable micro-straps / French seams',
+    description: 'Spun from sustainably harvested Austrian beechwood modal and mulberry silk. Liquid drape that whispers against bare skin with subtle low-luster sheen.',
+    details: [
+      'Bias cut for organic silhouette flow that contours natural movement',
+      'Ultra-fine adjustable gold hardware micro-straps',
+      'Side slit for ease of stride',
+      'Double layered bust lining for subtle modesty',
+    ],
+    fabricAndCare: [
+      '85% MicroModal, 15% Mulberry Silk',
+      'OEKO-TEX Standard 100',
+      'Hand wash cold or dry clean',
+      'Cool iron inside out',
+    ],
+    shippingAndReturns: [
+      'Free standard delivery over ',
+      '30-day returns accepted',
+    ],
+    price: {
+      amount: 110,
+      currencyCode: 'USD',
+    },
+    featuredImage: {
+      id: 'img-slip-1',
+      url: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=80',
+      altText: 'Silk Modal Lounge Slip in Bone',
+    },
+    images: [
+      {
+        id: 'img-slip-1',
+        url: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=80',
+        altText: 'Silk Modal Lounge Slip Editorial',
+      },
+      {
+        id: 'img-slip-2',
+        url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80',
+        altText: 'Silk Modal Fabric Drape',
+      },
+    ],
+    options: [
+      {
+        id: 'opt-color-2',
+        name: 'Color',
+        values: [
+          { name: 'Chalk', value: 'chalk', hexColor: '#f1ede4', inStock: true },
+          { name: 'Onyx', value: 'onyx', hexColor: '#171717', inStock: true },
+        ],
+      },
+      {
+        id: 'opt-size-2',
+        name: 'Size',
+        values: [
+          { name: 'XS', value: 'xs', inStock: true },
+          { name: 'S', value: 's', inStock: true },
+          { name: 'M', value: 'm', inStock: true },
+          { name: 'L', value: 'l', inStock: true },
+        ],
+      },
+    ],
+    variants: [
+      {
+        id: 'var-slip-chalk-s',
+        title: 'Chalk / S',
+        sku: 'US-SL-02-CHK-S',
+        availableForSale: true,
+        price: { amount: 110, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'chalk' }, { name: 'Size', value: 's' }],
+      },
+      {
+        id: 'var-slip-chalk-m',
+        title: 'Chalk / M',
+        sku: 'US-SL-02-CHK-M',
+        availableForSale: true,
+        price: { amount: 110, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'chalk' }, { name: 'Size', value: 'm' }],
+      },
+    ],
+    tags: ['dress', 'silk', 'lounge', 'slip'],
+    collections: ['silk-modal', 'new-arrivals'],
+    availableForSale: true,
+    badge: 'NEW',
+    rating: 4.8,
+    reviewCount: 62,
+    reviews: MOCK_REVIEWS,
+  },
+  {
+    id: 'prod-sculpt-bandeau',
+    handle: 'sculpt-ribbed-bandeau',
+    title: 'Sculpt Ribbed Bandeau',
+    subtitle: 'Stay-put silicone grip / Wireless structure',
+    description: 'Crafted from high-gauge compact rib knit with invisible interior silicone grip edging. Delivers dependable hold and support without underwires or binding bands.',
+    details: [
+      'Concealed hypoallergenic silicone perimeter to prevent slipping',
+      'Four-way knit architecture designed for natural shaping',
+      'Double-faced seamless construction',
+      'Removable light modesty inserts',
+    ],
+    fabricAndCare: [
+      '82% Polyamide, 18% Lycra Spandex',
+      'Hand wash recommended or cold delicates bag',
+      'Line dry only',
+    ],
+    shippingAndReturns: [
+      'Free shipping over ',
+      'Final sale if protective hygiene strip is removed',
+    ],
+    price: {
+      amount: 52,
+      currencyCode: 'USD',
+    },
+    featuredImage: {
+      id: 'img-bandeau-1',
+      url: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1000&q=80',
+      altText: 'Sculpt Ribbed Bandeau Studio',
+    },
+    images: [
+      {
+        id: 'img-bandeau-1',
+        url: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1000&q=80',
+        altText: 'Sculpt Ribbed Bandeau Studio',
+      },
+      {
+        id: 'img-bandeau-2',
+        url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80',
+        altText: 'Sculpt Ribbed Bandeau On Model',
+      },
+    ],
+    options: [
+      {
+        id: 'opt-color-3',
+        name: 'Color',
+        values: [
+          { name: 'Clay', value: 'clay', hexColor: '#a68a7c', inStock: true },
+          { name: 'Onyx', value: 'onyx', hexColor: '#171717', inStock: true },
+          { name: 'Espresso', value: 'espresso', hexColor: '#3a2e2b', inStock: true },
+        ],
+      },
+      {
+        id: 'opt-size-3',
+        name: 'Size',
+        values: [
+          { name: 'XS', value: 'xs', inStock: true },
+          { name: 'S', value: 's', inStock: true },
+          { name: 'M', value: 'm', inStock: true },
+          { name: 'L', value: 'l', inStock: true },
+        ],
+      },
+    ],
+    variants: [
+      {
+        id: 'var-bandeau-clay-s',
+        title: 'Clay / S',
+        sku: 'US-BD-03-CLY-S',
+        availableForSale: true,
+        price: { amount: 52, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'clay' }, { name: 'Size', value: 's' }],
+      },
+    ],
+    tags: ['bra', 'bandeau', 'sculpt', 'ribbed'],
+    collections: ['core-essentials', 'contour-sculpt'],
+    availableForSale: true,
+    badge: null,
+    rating: 4.7,
+    reviewCount: 89,
+    reviews: MOCK_REVIEWS,
+  },
+  {
+    id: 'prod-cashmere-wrap',
+    handle: 'fluid-cashmere-wrap-cardigan',
+    title: 'Fluid Cashmere Wrap Cardigan',
+    subtitle: 'Grade-A Mongolian cashmere / Self-tie belt / Clean selvedge',
+    description: 'An airy, featherlight layer knitted with gossamer single-ply Mongolian cashmere. An understated wrap silhouette that drapes effortlessly over bodysuits and lingerie slips.',
+    details: [
+      '100% Grade-A Mongolian Cashmere (15.5 micron fiber fineness)',
+      'Extra long sleeves designed for graceful cuff bunching',
+      'Removable knit waist sash',
+      'Featherlight 7-gauge knit with brushed velvety hand',
+    ],
+    fabricAndCare: [
+      '100% Pure Mongolian Cashmere',
+      'Hand wash cold with wool detergent or gentle dry clean',
+      'Dry flat on absorbent towel away from direct heat',
+    ],
+    shippingAndReturns: [
+      'Complimentary signature courier delivery included',
+      '30-day luxury returns with original garment tags',
+    ],
+    price: {
+      amount: 240,
+      currencyCode: 'USD',
+    },
+    featuredImage: {
+      id: 'img-cardigan-1',
+      url: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1000&q=80',
+      altText: 'Fluid Cashmere Wrap Cardigan',
+    },
+    images: [
+      {
+        id: 'img-cardigan-1',
+        url: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1000&q=80',
+        altText: 'Fluid Cashmere Wrap Cardigan Editorial',
+      },
+    ],
+    options: [
+      {
+        id: 'opt-color-4',
+        name: 'Color',
+        values: [
+          { name: 'Chalk', value: 'chalk', hexColor: '#f1ede4', inStock: true },
+          { name: 'Espresso', value: 'espresso', hexColor: '#3a2e2b', inStock: true },
+        ],
+      },
+      {
+        id: 'opt-size-4',
+        name: 'Size',
+        values: [
+          { name: 'S/M', value: 'sm', inStock: true },
+          { name: 'M/L', value: 'ml', inStock: true },
+        ],
+      },
+    ],
+    variants: [
+      {
+        id: 'var-cardigan-chk-sm',
+        title: 'Chalk / S/M',
+        sku: 'US-CW-04-CHK-SM',
+        availableForSale: true,
+        price: { amount: 240, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'chalk' }, { name: 'Size', value: 'sm' }],
+      },
+    ],
+    tags: ['knitwear', 'cashmere', 'luxury', 'wrap'],
+    collections: ['silk-modal', 'new-arrivals'],
+    availableForSale: true,
+    badge: 'LIMITED',
+    rating: 5.0,
+    reviewCount: 38,
+    reviews: MOCK_REVIEWS,
+  },
+  {
+    id: 'prod-contour-bralette',
+    handle: 'essential-contour-bralette',
+    title: 'Essential Contour Bralette',
+    subtitle: 'Unlined triangle cups / Wide stabilizing band',
+    description: 'Minimalist triangle bralette engineered in ultra-smooth double knit fabric. Provides gentle natural contouring with zero underwires, hardware, or itch points.',
+    details: [
+      'Plunge v-neckline optimized for deep necklines',
+      'Wide flat-lock ribbed underbust band that stays anchored',
+      'Clean raw-cut edges that lie flush against ribs',
+      'Tag-free comfort interior printing',
+    ],
+    fabricAndCare: [
+      '79% Recycled Micro-Polyamide, 21% Elastane',
+      'Machine wash cold, delicate cycle',
+      'Hang to dry',
+    ],
+    shippingAndReturns: [
+      'Free standard delivery over ',
+      'Easy 30-day exchange portal',
+    ],
+    price: {
+      amount: 48,
+      currencyCode: 'USD',
+    },
+    featuredImage: {
+      id: 'img-bralette-1',
+      url: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1000&q=80',
+      altText: 'Essential Contour Bralette',
+    },
+    images: [
+      {
+        id: 'img-bralette-1',
+        url: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1000&q=80',
+        altText: 'Essential Contour Bralette in Espresso',
+      },
+    ],
+    options: [
+      {
+        id: 'opt-color-5',
+        name: 'Color',
+        values: [
+          { name: 'Onyx', value: 'onyx', hexColor: '#171717', inStock: true },
+          { name: 'Clay', value: 'clay', hexColor: '#a68a7c', inStock: true },
+          { name: 'Espresso', value: 'espresso', hexColor: '#3a2e2b', inStock: true },
+        ],
+      },
+      {
+        id: 'opt-size-5',
+        name: 'Size',
+        values: [
+          { name: 'XS', value: 'xs', inStock: true },
+          { name: 'S', value: 's', inStock: true },
+          { name: 'M', value: 'm', inStock: true },
+          { name: 'L', value: 'l', inStock: true },
+        ],
+      },
+    ],
+    variants: [
+      {
+        id: 'var-bralette-onyx-s',
+        title: 'Onyx / S',
+        sku: 'US-BR-05-ONX-S',
+        availableForSale: true,
+        price: { amount: 48, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'onyx' }, { name: 'Size', value: 's' }],
+      },
+    ],
+    tags: ['bralette', 'underwire-free', 'core-essentials'],
+    collections: ['core-essentials', 'contour-sculpt'],
+    availableForSale: true,
+    badge: 'RESTOCKED',
+    rating: 4.8,
+    reviewCount: 114,
+    reviews: MOCK_REVIEWS,
+  },
+  {
+    id: 'prod-micromodal-short',
+    handle: 'micro-modal-boy-short',
+    title: 'Micro-Modal Boy Short',
+    subtitle: 'High-waisted fit / Zero roll waistband / Breathable gusset',
+    description: 'An airy everyday bottom crafted from plant-based micromodal fibers with supreme silkiness. Delivers full hip coverage and seamless drape under light linen or trousers.',
+    details: [
+      'Full coverage boy-short silhouette',
+      'Ultra-soft bamboo-infused antibacterial gusset liner',
+      'Non-binding bonded waistband that resists curling',
+      'Flat lock seams preventing any skin irritation',
+    ],
+    fabricAndCare: [
+      '92% MicroModal, 8% Elastane',
+      'Gentle cold machine wash',
+      'Tumble dry low or air dry',
+    ],
+    shippingAndReturns: [
+      'Complimentary delivery over ',
+      'Final sale due to hygiene standards',
+    ],
+    price: {
+      amount: 36,
+      currencyCode: 'USD',
+      compareAtAmount: 42,
+    },
+    featuredImage: {
+      id: 'img-short-1',
+      url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80',
+      altText: 'Micro-Modal Boy Short',
+    },
+    images: [
+      {
+        id: 'img-short-1',
+        url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80',
+        altText: 'Micro-Modal Boy Short Front',
+      },
+    ],
+    options: [
+      {
+        id: 'opt-color-6',
+        name: 'Color',
+        values: [
+          { name: 'Onyx', value: 'onyx', hexColor: '#171717', inStock: true },
+          { name: 'Chalk', value: 'chalk', hexColor: '#f1ede4', inStock: true },
+          { name: 'Clay', value: 'clay', hexColor: '#a68a7c', inStock: true },
+        ],
+      },
+      {
+        id: 'opt-size-6',
+        name: 'Size',
+        values: [
+          { name: 'XS', value: 'xs', inStock: true },
+          { name: 'S', value: 's', inStock: true },
+          { name: 'M', value: 'm', inStock: true },
+          { name: 'L', value: 'l', inStock: true },
+        ],
+      },
+    ],
+    variants: [
+      {
+        id: 'var-short-onyx-s',
+        title: 'Onyx / S',
+        sku: 'US-BS-06-ONX-S',
+        availableForSale: true,
+        price: { amount: 36, currencyCode: 'USD' },
+        selectedOptions: [{ name: 'Color', value: 'onyx' }, { name: 'Size', value: 's' }],
+      },
+    ],
+    tags: ['underwear', 'boyshort', 'modal', 'essentials'],
+    collections: ['core-essentials', 'silk-modal'],
+    availableForSale: true,
+    badge: null,
+    rating: 4.9,
+    reviewCount: 95,
+    reviews: MOCK_REVIEWS,
+  },
+];
