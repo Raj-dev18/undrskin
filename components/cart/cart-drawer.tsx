@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import NextImage from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import Script from 'next/script';
 import { useCart } from './cart-context';
 
 export function CartDrawer() {
@@ -23,12 +24,12 @@ export function CartDrawer() {
     setCheckoutError(null);
 
     try {
-      const response = await fetch('/api/checkout', {
+      const response = await fetch('/api/razorpay/order', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          amount: cart.cost.subtotalAmount.amount,
+          currency: cart.cost.subtotalAmount.currencyCode || 'USD',
           items: cart.lines.map((line) => ({
             variantId: line.variant.id,
             quantity: line.quantity,
@@ -36,28 +37,75 @@ export function CartDrawer() {
         }),
       });
 
-      const data = await response.json();
+      const orderData = await response.json();
 
-      if (!response.ok || !data.checkoutUrl) {
-        throw new Error(data.error || 'Failed to initialize secure checkout.');
+      if (!response.ok || !orderData.id) {
+        throw new Error(orderData.error || 'Failed to initialize secure checkout.');
       }
 
-      // Redirect to official Shopify Checkout
-      window.location.href = data.checkoutUrl;
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '', // Expose public key
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "UNDRSKIN STUDIO",
+        description: "Luxury Undergarments",
+        order_id: orderData.id,
+        handler: async function (res: any) {
+          try {
+            const verifyRes = await fetch('/api/razorpay/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(res),
+            });
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              window.location.href = '/checkout/success';
+            } else {
+              setCheckoutError('Payment verification failed.');
+              setIsCheckingOut(false);
+            }
+          } catch (e) {
+            setCheckoutError('Error verifying payment.');
+            setIsCheckingOut(false);
+          }
+        },
+        prefill: {
+          name: "Client",
+          email: "care@undrskin.studio",
+        },
+        theme: {
+          color: "#0c0c0c",
+        },
+        modal: {
+          ondismiss: function() {
+            setIsCheckingOut(false);
+          }
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        setCheckoutError(response.error.description);
+        setIsCheckingOut(false);
+      });
+      rzp.open();
     } catch (err: any) {
       console.error('Checkout error:', err);
-      setCheckoutError(err.message || 'Unable to connect to Shopify checkout. Please try again.');
+      setCheckoutError(err.message || 'Unable to connect to checkout. Please try again.');
       setIsCheckingOut(false);
     }
   };
 
   return (
-    <AnimatePresence>
-      {isCartOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+    <>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <AnimatePresence>
+        {isCartOpen && (
+          <motion.div
+            key="cart-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm"
           onClick={closeCart}
         >
@@ -264,6 +312,7 @@ export function CartDrawer() {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+      </AnimatePresence>
+    </>
   );
 }

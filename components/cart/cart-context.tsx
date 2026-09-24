@@ -30,12 +30,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const stored = localStorage.getItem('undrskin_cart');
       if (stored) {
-        setItems(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        requestAnimationFrame(() => setItems(parsed));
       }
     } catch {
       // ignore
     }
-    setIsLoaded(true);
+    requestAnimationFrame(() => setIsLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -50,13 +51,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
   const subtotalAmount = items.reduce((acc, item) => acc + item.variant.price.amount * item.quantity, 0);
+  const currencyCode = items[0]?.variant?.price?.currencyCode || 'USD';
+
+  const formatPrice = (amount: number, currencyCode: string) => {
+    const locale = currencyCode === 'INR' ? 'en-IN' : 'en-US';
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currencyCode,
+      minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    }).format(amount);
+  };
 
   const cart: Cart = {
     lines: items,
     totalQuantity,
     cost: {
-      subtotalAmount: { amount: subtotalAmount, currencyCode: 'USD' },
-      totalAmount: { amount: subtotalAmount, currencyCode: 'USD' },
+      subtotalAmount: { amount: subtotalAmount, currencyCode },
+      totalAmount: { amount: subtotalAmount, currencyCode },
+      formattedSubtotalAmount: formatPrice(subtotalAmount, currencyCode),
+      formattedTotalAmount: formatPrice(subtotalAmount, currencyCode),
     },
   };
 
