@@ -194,7 +194,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         </p>
                       </div>
                       <span className="text-xs font-mono text-neutral-300">
-                        ${product.price.amount.toFixed(2)}
+                        {product.price.formattedAmount}
                       </span>
                     </Link>
                   ))}

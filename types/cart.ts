@@ -22,6 +22,8 @@ export interface CartCost {
     amount: number;
     currencyCode: string;
   };
+  formattedSubtotalAmount?: string;
+  formattedTotalAmount?: string;
   totalTaxAmount?: {
     amount: number;
     currencyCode: string;

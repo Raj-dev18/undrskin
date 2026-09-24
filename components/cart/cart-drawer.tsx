@@ -145,7 +145,13 @@ export function CartDrawer() {
                   <span className="text-white font-medium">Complimentary Express Shipping Unlocked</span>
                 ) : (
                   <span className="text-neutral-400">
-                    Add <strong className="text-white">${remainingForFreeShipping.toFixed(2)}</strong> for Free Express Delivery
+                    Add <strong className="text-white">
+                      {new Intl.NumberFormat(cart.cost.subtotalAmount.currencyCode === 'INR' ? 'en-IN' : 'en-US', {
+                        style: 'currency',
+                        currency: cart.cost.subtotalAmount.currencyCode,
+                        minimumFractionDigits: Number.isInteger(remainingForFreeShipping) ? 0 : 2
+                      }).format(remainingForFreeShipping)}
+                    </strong> for Free Express Delivery
                   </span>
                 )}
                 <span className="text-neutral-400">{Math.round(shippingProgress)}%</span>
@@ -210,7 +216,7 @@ export function CartDrawer() {
                             {item.product.title}
                           </Link>
                           <span className="text-xs font-mono text-white ml-2">
-                            ${item.variant.price.amount.toFixed(2)}
+                            {item.variant.price.formattedAmount}
                           </span>
                         </div>
                         <div className="text-[11px] text-neutral-400 mt-1 space-x-2">
@@ -264,7 +270,7 @@ export function CartDrawer() {
                   <div className="flex justify-between text-xs text-neutral-400">
                     <span className="uppercase tracking-wider">Estimated Subtotal</span>
                     <span className="font-mono text-white">
-                      ${cart.cost.subtotalAmount.amount.toFixed(2)}
+                      {cart.cost.formattedSubtotalAmount}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs text-neutral-400">
@@ -289,7 +295,7 @@ export function CartDrawer() {
                     <>
                       <span>Checkout</span>
                       <span>—</span>
-                      <span>${cart.cost.subtotalAmount.amount.toFixed(2)}</span>
+                      <span>{cart.cost.formattedSubtotalAmount}</span>
                     </>
                   )}
                 </button>

@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 
+import { calculateCartSubtotal } from '@/lib/shopify';
+
 export async function POST(request: NextRequest) {
   try {
-    const { amount, currency = "USD", items } = await request.json();
+    const { currency = "USD", items } = await request.json();
 
-    if (!amount) {
-      return NextResponse.json({ error: 'Amount is required' }, { status: 400 });
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'Cart items are required' }, { status: 400 });
+    }
+
+    const calculatedAmount = await calculateCartSubtotal(items);
+    if (calculatedAmount <= 0) {
+      return NextResponse.json({ error: 'Invalid cart amount' }, { status: 400 });
     }
 
     // Initialize Razorpay
@@ -16,7 +23,7 @@ export async function POST(request: NextRequest) {
     });
 
     const options = {
-      amount: Math.round(amount * 100), // amount in smallest currency unit
+      amount: Math.round(calculatedAmount * 100), // amount in smallest currency unit
       currency,
       receipt: `receipt_order_${Date.now()}`,
     };

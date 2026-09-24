@@ -10,7 +10,7 @@ export interface ProductPrice {
   amount: number;
   currencyCode: string;
   compareAtAmount?: number;
-  formattedAmount: string;
+  formattedAmount?: string;
   formattedCompareAtAmount?: string;
 }
 

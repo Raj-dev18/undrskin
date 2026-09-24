@@ -143,8 +143,10 @@ export const MOCK_PRODUCTS: Product[] = [
     ],
     price: {
       amount: 78,
-      currencyCode: 'USD',
-      compareAtAmount: 94,
+        currencyCode: 'USD',
+        formattedAmount: '$78.00',
+        compareAtAmount: 94,
+        formattedCompareAtAmount: '$94.00',
     },
     featuredImage: {
       id: 'img-bodysuit-1',
@@ -278,7 +280,8 @@ export const MOCK_PRODUCTS: Product[] = [
     ],
     price: {
       amount: 110,
-      currencyCode: 'USD',
+        currencyCode: 'USD',
+        formattedAmount: '$110.00',
     },
     featuredImage: {
       id: 'img-slip-1',
@@ -366,7 +369,8 @@ export const MOCK_PRODUCTS: Product[] = [
     ],
     price: {
       amount: 52,
-      currencyCode: 'USD',
+        currencyCode: 'USD',
+        formattedAmount: '$52.00',
     },
     featuredImage: {
       id: 'img-bandeau-1',
@@ -447,7 +451,8 @@ export const MOCK_PRODUCTS: Product[] = [
     ],
     price: {
       amount: 240,
-      currencyCode: 'USD',
+        currencyCode: 'USD',
+        formattedAmount: '$240.00',
     },
     featuredImage: {
       id: 'img-cardigan-1',
@@ -520,7 +525,8 @@ export const MOCK_PRODUCTS: Product[] = [
     ],
     price: {
       amount: 48,
-      currencyCode: 'USD',
+        currencyCode: 'USD',
+        formattedAmount: '$48.00',
     },
     featuredImage: {
       id: 'img-bralette-1',
@@ -596,8 +602,10 @@ export const MOCK_PRODUCTS: Product[] = [
     ],
     price: {
       amount: 36,
-      currencyCode: 'USD',
-      compareAtAmount: 42,
+        currencyCode: 'USD',
+        formattedAmount: '$36.00',
+        compareAtAmount: 42,
+        formattedCompareAtAmount: '$42.00',
     },
     featuredImage: {
       id: 'img-short-1',
