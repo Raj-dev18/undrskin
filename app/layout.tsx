@@ -8,6 +8,8 @@ import { Footer } from '@/components/layout/footer';
 import { CartDrawer } from '@/components/cart/cart-drawer';
 import { getCollections } from '@/lib/shopify';
 
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
@@ -52,7 +54,7 @@ export default async function RootLayout({
           <AnnouncementBar />
           <Header collections={collections} />
           <main className="flex-1 w-full">{children}</main>
-          <Footer />
+          <Footer collections={collections} />
           <CartDrawer />
         </CartProvider>
       </body>

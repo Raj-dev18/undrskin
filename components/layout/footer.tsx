@@ -2,8 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { Collection } from '@/types/product';
 
-export function Footer() {
+interface FooterProps {
+  collections?: Collection[];
+}
+
+export function Footer({ collections = [] }: FooterProps) {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -14,6 +19,8 @@ export function Footer() {
       setEmail('');
     }
   };
+
+  const navCollections = collections.slice(0, 5);
 
   return (
     <footer className="bg-neutral-950 text-neutral-400 border-t border-neutral-900 pt-16 pb-12">
@@ -34,7 +41,6 @@ export function Footer() {
             </div>
           </div>
 
-
           <div className="md:col-span-2 space-y-3">
             <h4 className="text-xs uppercase tracking-[0.2em] text-neutral-200 font-medium">Collections</h4>
             <ul className="space-y-2.5 text-xs font-light">
@@ -43,29 +49,15 @@ export function Footer() {
                   All Silhouettes
                 </Link>
               </li>
-              <li>
-                <Link href="/collections/core-essentials" className="hover:text-white transition-colors">
-                  Core Essentials
-                </Link>
-              </li>
-              <li>
-                <Link href="/collections/silk-modal" className="hover:text-white transition-colors">
-                  Silk & Modal
-                </Link>
-              </li>
-              <li>
-                <Link href="/collections/contour-sculpt" className="hover:text-white transition-colors">
-                  Contour Sculpt
-                </Link>
-              </li>
-              <li>
-                <Link href="/collections/new-arrivals" className="hover:text-white transition-colors">
-                  New Arrivals
-                </Link>
-              </li>
+              {navCollections.map((col) => (
+                <li key={col.handle}>
+                  <Link href={`/collections/${col.handle}`} className="hover:text-white transition-colors">
+                    {col.title}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
-
 
           <div className="md:col-span-2 space-y-3">
             <h4 className="text-xs uppercase tracking-[0.2em] text-neutral-200 font-medium">Client Care</h4>
@@ -92,7 +84,6 @@ export function Footer() {
               </li>
             </ul>
           </div>
-
 
           <div className="md:col-span-4 space-y-4">
             <h4 className="text-xs uppercase tracking-[0.2em] text-neutral-200 font-medium">Privilege List</h4>
@@ -123,7 +114,6 @@ export function Footer() {
             )}
           </div>
         </div>
-
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] font-light text-neutral-500 gap-4">
           <p>© {new Date().getFullYear()} UNDRSKIN STUDIO INC. ALL RIGHTS RESERVED.</p>

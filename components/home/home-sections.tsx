@@ -191,7 +191,7 @@ export function HomeSections({ products, collections, faqs, reviews }: HomeSecti
               </div>
               <h4 className="text-xs font-semibold text-neutral-200">{rev.title}</h4>
               <p className="text-xs text-neutral-400 font-light leading-relaxed">
-                "{rev.content}"
+                &ldquo;{rev.content}&rdquo;
               </p>
               {rev.fitFeedback && (
                 <div className="text-[10px] uppercase tracking-wider text-neutral-400 pt-2 border-t border-neutral-800 font-mono">

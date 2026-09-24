@@ -18,12 +18,14 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (!isOpen) {
       setQuery('');
       setResults([]);
     }
-  }, [isOpen]);
+  }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -38,8 +40,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   // Debounced live search
   useEffect(() => {
     if (!query.trim()) {
-      setResults([]);
-      setIsLoading(false);
       return;
     }
 
@@ -93,7 +93,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 autoFocus
                 placeholder="Search raw silk, contour slips, seamless bralettes..."
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  if (!e.target.value.trim()) {
+                    setResults([]);
+                    setIsLoading(false);
+                  }
+                }}
                 className="w-full bg-transparent text-sm text-white placeholder:text-neutral-500 focus:outline-none tracking-wide"
               />
               {isLoading && (

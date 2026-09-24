@@ -4,13 +4,20 @@ import React from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
+import { Collection } from '@/types/product';
 
 const ThreeCanvas = dynamic(
   () => import('@/components/ui/three-canvas').then((mod) => mod.ThreeCanvas),
   { ssr: false }
 );
 
-export function Hero() {
+interface HeroProps {
+  collections?: Collection[];
+}
+
+export function Hero({ collections = [] }: HeroProps) {
+  const primaryCollection = collections.length > 0 ? collections[0] : null;
+
   return (
     <section className="relative min-h-[92vh] flex items-center justify-center overflow-hidden bg-neutral-950 px-4 sm:px-6 lg:px-8">
       {/* Dynamic Three.js ambient accent */}
@@ -48,12 +55,21 @@ export function Hero() {
             >
               Explore Collection
             </Link>
-            <Link
-              href="/collections/core-essentials"
-              className="w-full sm:w-auto px-8 py-3.5 border border-neutral-700 text-white text-xs uppercase tracking-widest hover:border-white transition-all text-center"
-            >
-              Core Essentials
-            </Link>
+            {primaryCollection ? (
+              <Link
+                href={`/collections/${primaryCollection.handle}`}
+                className="w-full sm:w-auto px-8 py-3.5 border border-neutral-700 text-white text-xs uppercase tracking-widest hover:border-white transition-all text-center"
+              >
+                {primaryCollection.title}
+              </Link>
+            ) : (
+              <Link
+                href="/collections"
+                className="w-full sm:w-auto px-8 py-3.5 border border-neutral-700 text-white text-xs uppercase tracking-widest hover:border-white transition-all text-center"
+              >
+                Archive Silhouettes
+              </Link>
+            )}
           </div>
         </motion.div>
 
