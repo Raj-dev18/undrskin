@@ -938,3 +938,32 @@ export async function createShopifyCheckoutUrl(
 export async function getFAQs(): Promise<FAQItem[]> {
   return MOCK_FAQS;
 }
+
+export async function calculateCartSubtotal(items: { variantId: string; quantity: number }[]): Promise<number> {
+  if (!items || items.length === 0) return 0;
+  let total = 0;
+  
+  const ids = items.map((i) => i.variantId);
+  const query = `
+    query getVariantsPrices($ids: [ID!]!) {
+      nodes(ids: $ids) {
+        ... on ProductVariant {
+          id
+          price
+        }
+      }
+    }
+  `;
+  
+  const data = await shopifyAdminRequest<any>(query, { ids });
+  const nodes = data?.nodes || [];
+  
+  items.forEach((item) => {
+    const node = nodes.find((n: any) => n && n.id === item.variantId);
+    if (node && node.price) {
+      total += Number(node.price) * item.quantity;
+    }
+  });
+  
+  return total;
+}

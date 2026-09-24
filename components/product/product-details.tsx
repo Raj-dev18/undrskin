@@ -84,12 +84,22 @@ export function ProductDetails({ product, onVariantChange }: ProductDetailsProps
     setIsCheckingOut(false);
   };
 
-  const currentPrice = selectedVariant
+  const currentPriceAmount = selectedVariant
     ? selectedVariant.price.amount
     : product.price.amount;
-  const currentCompareAt = selectedVariant
-    ? selectedVariant.price.compareAtAmount
-    : product.price.compareAtAmount;
+  const currencyCode = selectedVariant ? selectedVariant.price.currencyCode : product.price.currencyCode;
+  
+  const currentPriceFormatted = selectedVariant
+    ? selectedVariant.price.formattedAmount
+    : product.price.formattedAmount;
+  const currentCompareAtFormatted = selectedVariant
+    ? selectedVariant.price.formattedCompareAtAmount
+    : product.price.formattedCompareAtAmount;
+
+  const formatButtonPrice = (amt: number, currency: string) => {
+    const locale = currency === 'INR' ? 'en-IN' : 'en-US';
+    return new Intl.NumberFormat(locale, { style: 'currency', currency, minimumFractionDigits: Number.isInteger(amt) ? 0 : 2 }).format(amt);
+  };
 
   return (
     <div className="space-y-8">
@@ -112,11 +122,11 @@ export function ProductDetails({ product, onVariantChange }: ProductDetailsProps
 
         <div className="flex items-center space-x-3 pt-1">
           <span className="text-lg font-mono text-white">
-            ${currentPrice.toFixed(2)}
+            {currentPriceFormatted}
           </span>
-          {currentCompareAt && (
+          {currentCompareAtFormatted && (
             <span className="text-sm font-mono text-neutral-500 line-through">
-              ${currentCompareAt.toFixed(2)}
+              {currentCompareAtFormatted}
             </span>
           )}
           <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-mono">
@@ -286,7 +296,7 @@ export function ProductDetails({ product, onVariantChange }: ProductDetailsProps
             ? 'Currently Sold Out'
             : addedAnimation
             ? 'Added to Bag ✓'
-            : `Add to Bag — $${(currentPrice * quantity).toFixed(2)}`}
+            : `Add to Bag — ${formatButtonPrice(currentPriceAmount * quantity, currencyCode)}`}
         </button>
 
         {selectedVariant && selectedVariant.availableForSale && (

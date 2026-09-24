@@ -158,7 +158,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
                     }`}
                   >
                     <span>{v.title}</span>
-                    <span className="font-mono text-[11px]">${v.price.amount.toFixed(2)}</span>
+                    <span className="font-mono text-[11px]">{v.price.formattedAmount}</span>
                   </button>
                 );
               })}
@@ -186,11 +186,11 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           </Link>
           <div className="flex items-center space-x-1.5 ml-2">
             <span className="text-xs font-mono text-neutral-300">
-              ${product.price.amount.toFixed(2)}
+              {product.price.formattedAmount}
             </span>
-            {product.price.compareAtAmount && (
+            {product.price.formattedCompareAtAmount && (
               <span className="text-[11px] font-mono text-neutral-500 line-through">
-                ${product.price.compareAtAmount.toFixed(2)}
+                {product.price.formattedCompareAtAmount}
               </span>
             )}
           </div>
