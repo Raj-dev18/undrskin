@@ -44,7 +44,7 @@ export function CartDrawer() {
       }
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '', // Expose public key
+        key: orderData.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
         amount: orderData.amount,
         currency: orderData.currency,
         name: "UNDRSKIN STUDIO",
@@ -52,10 +52,21 @@ export function CartDrawer() {
         order_id: orderData.id,
         handler: async function (res: any) {
           try {
+            let phone = '';
+            try {
+              const profile = localStorage.getItem('undrskin_profile');
+              if (profile) phone = JSON.parse(profile).phone || '';
+            } catch (e) {}
+
             const verifyRes = await fetch('/api/razorpay/verify', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(res),
+              body: JSON.stringify({
+                ...res,
+                phone,
+                amount: cart.cost.formattedSubtotalAmount,
+                itemsCount: cart.totalQuantity,
+              }),
             });
             const verifyData = await verifyRes.json();
             if (verifyData.success) {

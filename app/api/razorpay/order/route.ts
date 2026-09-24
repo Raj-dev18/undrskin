@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       id: order.id,
       currency: order.currency,
       amount: order.amount,
+      keyId: process.env.RAZORPAY_KEY_ID,
     });
   } catch (error: any) {
     console.error('Razorpay Order error:', error);

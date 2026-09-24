@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { sendOrderConfirmationNotification } from '@/lib/notifications/twilio';
 
 export async function POST(request: NextRequest) {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await request.json();
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, phone, amount, itemsCount } = await request.json();
 
     const secret = process.env.RAZORPAY_KEY_SECRET || '';
 
@@ -18,7 +19,11 @@ export async function POST(request: NextRequest) {
 
     if (isAuthentic) {
       // Signature is valid. 
-      // Here you would typically trigger Shopify order creation, clear the cart, etc.
+      // Trigger SMS notification if phone is available
+      if (phone) {
+        await sendOrderConfirmationNotification(phone, razorpay_order_id, amount || 'the total', itemsCount || 1);
+      }
+      
       return NextResponse.json({ success: true, message: 'Payment verified successfully' }, { status: 200 });
     } else {
       return NextResponse.json({ success: false, error: 'Invalid signature' }, { status: 400 });
