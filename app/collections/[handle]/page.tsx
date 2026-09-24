@@ -1,18 +1,28 @@
 import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
 import { getProducts, getCollections, getCollectionByHandle } from '@/lib/shopify';
 import { CollectionsClient } from '@/components/product/collections-client';
+
+export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ handle: string }>;
 }
 
-export async function generateMetadata({ params}: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
   const collection = await getCollectionByHandle(handle);
-  if (!collection) return { title: 'Collection — UNDRSKIN' };
-  return{
+  if (!collection) {
+    return { title: 'Collection Not Found — UNDRSKIN' };
+  }
+  return {
     title: `${collection.title} — UNDRSKIN`,
     description: collection.description,
+    openGraph: {
+      title: `${collection.title} — UNDRSKIN`,
+      description: collection.description,
+      images: collection.image?.url ? [{ url: collection.image.url }] : [],
+    },
   };
 }
 

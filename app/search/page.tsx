@@ -3,6 +3,8 @@ import { Metadata } from 'next';
 import { searchProducts } from '@/lib/shopify';
 import { ProductGrid } from '@/components/product/product-grid';
 
+export const dynamic = 'force-dynamic';
+
 interface SearchPageProps {
   searchParams: Promise<{ q?: string }>;
 }

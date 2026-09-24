@@ -2,12 +2,13 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Metadata } from 'next';
 import { getProductByHandle, getProducts, getFAQs } from '@/lib/shopify';
-import { ProductGallery } from '@/components/product/product-gallery';
-import { ProductDetails } from '@/components/product/product-details';
+import { getJudgeMeProductReviews } from '@/lib/judgeme';
+import { ProductView } from '@/components/product/product-view';
 import { ProductRecommendations } from '@/components/product/product-recommendations';
 import { ReviewsSection } from '@/components/product/reviews-section';
 import { ProductFaqPreview } from '@/components/product/product-faq-preview';
-import { MOCK_REVIEWS } from '@/lib/mock-data';
+
+export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ handle: string }>;
@@ -44,23 +45,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { handle } = await params;
-  const [product, allProducts, faqs] = await Promise.all([
-    getProductByHandle(handle),
-    getProducts(),
-    getFAQs(),
-  ]);
+  const product = await getProductByHandle(handle);
 
   if (!product) {
     notFound();
   }
 
+  // Concurrently fetch catalog recommendations, FAQs, and live Judge.me reviews
+  const [allProducts, faqs, judgeMeData] = await Promise.all([
+    getProducts(),
+    getFAQs(),
+    getJudgeMeProductReviews(product.id, product.handle),
+  ]);
+
+  // Synchronize product model with dynamic Judge.me reviews and rating
+  if (judgeMeData) {
+    product.rating = judgeMeData.rating;
+    product.reviewCount = judgeMeData.reviewCount;
+    product.reviews = judgeMeData.reviews;
+    product.judgeMeWidgetHtml = judgeMeData.widgetHtml;
+  }
+
   // Schema.org Product JSON-LD for rich snippets
-  const jsonLd = {
+  const jsonLdImages = product.images.length > 0
+    ? product.images.map((img) => img.url)
+    : product.featuredImage?.url
+    ? [product.featuredImage.url]
+    : [];
+
+  const jsonLd: Record<string, any> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.title,
     description: product.description,
-    image: product.images.map((img) => img.url),
+    image: jsonLdImages,
     offers: {
       '@type': 'Offer',
       price: product.price.amount,
@@ -70,6 +88,14 @@ export default async function ProductPage({ params }: Props) {
         : 'https://schema.org/OutOfStock',
     },
   };
+
+  if (product.reviewCount > 0) {
+    jsonLd.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: product.rating,
+      reviewCount: product.reviewCount,
+    };
+  }
 
   return (
     <>
@@ -92,23 +118,17 @@ export default async function ProductPage({ params }: Props) {
           <span className="text-white truncate">{product.title}</span>
         </nav>
 
-        {/* Main 2-column Product Display */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
-          <div className="lg:col-span-7">
-            <ProductGallery images={product.images} title={product.title} />
-          </div>
-
-          <div className="lg:col-span-5 lg:sticky lg:top-28">
-            <ProductDetails product={product} />
-          </div>
-        </div>
+        {/* Coordinated 2-column Product Display */}
+        <ProductView product={product} />
 
         {/* Client Reviews Section */}
         <ReviewsSection
-          reviews={MOCK_REVIEWS}
-          rating={product.rating || 4.9}
-          reviewCount={product.reviewCount || 48}
+          reviews={judgeMeData.reviews}
+          rating={judgeMeData.rating}
+          reviewCount={judgeMeData.reviewCount}
           productTitle={product.title}
+          widgetHtml={judgeMeData.widgetHtml}
+          shopDomain={process.env.JUDGEME_SHOP_DOMAIN || process.env.SHOPIFY_STORE_DOMAIN || 'f7gwna-cx.myshopify.com'}
         />
 
         {/* Fitting & Care FAQ Preview */}

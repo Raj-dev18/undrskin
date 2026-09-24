@@ -14,14 +14,18 @@ interface ProductCardProps {
 export function ProductCard({ product, priority = false }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [quickSelectOpen, setQuickSelectOpen] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant>(
-    product.variants[0] || null
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
+    product.variants.find((v) => v.availableForSale) || product.variants[0] || null
   );
   const [addedAnimation, setAddedAnimation] = useState(false);
   const { addItem } = useCart();
 
-  const primaryImage = product.featuredImage || product.images[0];
-  const secondaryImage = product.images[1] || primaryImage;
+  const primaryImage = product.featuredImage || product.images[0] || {
+    id: 'placeholder',
+    url: '/placeholder.svg',
+    altText: product.title,
+  };
+  const secondaryImage = product.images.length > 1 ? product.images[1] : null;
 
   const isSoldOut = !product.availableForSale;
   const hasMultipleVariants = product.variants.length > 1;
@@ -34,9 +38,12 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
     if (hasMultipleVariants) {
       setQuickSelectOpen(true);
-    } else if (product.variants.length > 0) {
-      addItem(product, product.variants[0]);
-      triggerAddedFeedback();
+    } else {
+      const singleVariant = product.variants.find((v) => v.availableForSale) || product.variants[0];
+      if (singleVariant && singleVariant.availableForSale) {
+        addItem(product, singleVariant);
+        triggerAddedFeedback();
+      }
     }
   };
 
@@ -193,9 +200,10 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           <span className="capitalize">{product.collections[0]?.replace('-', ' ') || 'Studio'}</span>
           {isSoldOut ? (
             <span className="text-[10px] text-neutral-500 font-mono">Out of stock</span>
-          ) : product.rating ? (
-            <span className="font-mono text-[10px] text-neutral-400">
-              ★ {product.rating}
+          ) : product.reviewCount > 0 ? (
+            <span className="font-mono text-[10px] text-neutral-300 flex items-center gap-1">
+              <span className="text-[#ffcc00]">★</span> {product.rating.toFixed(1)}
+              <span className="text-neutral-500">({product.reviewCount})</span>
             </span>
           ) : null}
         </div>

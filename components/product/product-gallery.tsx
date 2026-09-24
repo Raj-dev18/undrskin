@@ -1,29 +1,59 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import NextImage from 'next/image';
 import { ProductImage } from '@/types/product';
 
 interface ProductGalleryProps {
   images: ProductImage[];
   title: string;
+  variantImage?: ProductImage;
 }
 
-export function ProductGallery({ images, title }: ProductGalleryProps) {
+export function ProductGallery({ images, title, variantImage }: ProductGalleryProps) {
+  const displayImages = useMemo(() => {
+    return images && images.length > 0
+      ? images
+      : [
+          {
+            id: 'placeholder',
+            url: '/placeholder.svg',
+            altText: title,
+            width: 800,
+            height: 1067,
+          },
+        ];
+  }, [images, title]);
+
   const [selectedIdx, setSelectedIdx] = useState(0);
+  const [prevVariantKey, setPrevVariantKey] = useState<string | undefined>(
+    variantImage?.id || variantImage?.url
+  );
   const [isZoomed, setIsZoomed] = useState(false);
 
-  if (!images || images.length === 0) return null;
+  // Synchronize gallery display when a variant image changes
+  const currentVariantKey = variantImage?.id || variantImage?.url;
+  if (currentVariantKey !== prevVariantKey) {
+    setPrevVariantKey(currentVariantKey);
+    if (variantImage?.url) {
+      const idx = displayImages.findIndex(
+        (img) => img.url === variantImage.url || (img.id && img.id === variantImage.id)
+      );
+      if (idx > -1) {
+        setSelectedIdx(idx);
+      }
+    }
+  }
 
-  const currentImage = images[selectedIdx] || images[0];
+  const currentImage = displayImages[selectedIdx] || displayImages[0];
 
   return (
     <>
       <div className="flex flex-col-reverse md:flex-row gap-4">
         {/* Thumbnails */}
-        {images.length > 1 && (
+        {displayImages.length > 1 && (
           <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto max-h-[640px] scrollbar-none">
-            {images.map((img, idx) => (
+            {displayImages.map((img, idx) => (
               <button
                 key={`${img.url}-${idx}`}
                 onClick={() => setSelectedIdx(idx)}

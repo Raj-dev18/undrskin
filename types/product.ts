@@ -10,6 +10,8 @@ export interface ProductPrice {
   amount: number;
   currencyCode: string;
   compareAtAmount?: number;
+  formattedAmount: string;
+  formattedCompareAtAmount?: string;
 }
 
 export interface ProductOptionValue {
@@ -78,6 +80,7 @@ export interface Product {
   rating: number;
   reviewCount: number;
   reviews?: Review[];
+  judgeMeWidgetHtml?: string;
 }
 
 export interface Collection {

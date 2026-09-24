@@ -1,18 +1,32 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Product, ProductVariant } from '@/types/product';
 import { useCart } from '@/components/cart/cart-context';
 
 interface ProductDetailsProps {
   product: Product;
+  onVariantChange?: (variant: ProductVariant | undefined) => void;
 }
 
-export function ProductDetails({ product }: ProductDetailsProps) {
+export function ProductDetails({ product, onVariantChange }: ProductDetailsProps) {
   const { addItem, openCart } = useCart();
+
+  // Filter out Shopify internal "Default Title" options for single-variant products
+  const visibleOptions = useMemo(() => {
+    return (product.options || []).filter(
+      (opt) =>
+        !(
+          opt.name.toLowerCase() === 'title' &&
+          opt.values.length === 1 &&
+          opt.values[0]?.value.toLowerCase() === 'default title'
+        )
+    );
+  }, [product.options]);
+
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
-    product.options.forEach((opt) => {
+    visibleOptions.forEach((opt) => {
       if (opt.values.length > 0) {
         initial[opt.name] = opt.values[0].value;
       }
@@ -25,17 +39,34 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   const [addedAnimation, setAddedAnimation] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-  // Match selected variant
-  const selectedVariant: ProductVariant =
-    product.variants.find((v) =>
+  // Exact matching of selected variant based on all selected options
+  const selectedVariant: ProductVariant | undefined = useMemo(() => {
+    if (visibleOptions.length === 0) {
+      return product.variants[0];
+    }
+    return product.variants.find((v) =>
       v.selectedOptions.every((so) => selectedOptions[so.name] === so.value)
-    ) || product.variants[0];
+    );
+  }, [product.variants, visibleOptions.length, selectedOptions]);
+
+  // Inform parent/gallery whenever the active variant changes
+  useEffect(() => {
+    onVariantChange?.(selectedVariant);
+  }, [selectedVariant, onVariantChange]);
 
   const handleOptionChange = (optionName: string, value: string) => {
     setSelectedOptions((prev) => ({
       ...prev,
       [optionName]: value,
     }));
+  };
+
+  const isOptionValueAvailable = (optionName: string, val: string) => {
+    const testOptions = { ...selectedOptions, [optionName]: val };
+    const matched = product.variants.find((v) =>
+      v.selectedOptions.every((so) => testOptions[so.name] === so.value)
+    );
+    return matched ? matched.availableForSale : false;
   };
 
   const handleAddToCart = () => {
@@ -52,6 +83,13 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     openCart();
     setIsCheckingOut(false);
   };
+
+  const currentPrice = selectedVariant
+    ? selectedVariant.price.amount
+    : product.price.amount;
+  const currentCompareAt = selectedVariant
+    ? selectedVariant.price.compareAtAmount
+    : product.price.compareAtAmount;
 
   return (
     <div className="space-y-8">
@@ -74,126 +112,184 @@ export function ProductDetails({ product }: ProductDetailsProps) {
 
         <div className="flex items-center space-x-3 pt-1">
           <span className="text-lg font-mono text-white">
-            ${selectedVariant ? selectedVariant.price.amount.toFixed(2) : product.price.amount.toFixed(2)}
+            ${currentPrice.toFixed(2)}
           </span>
-          {selectedVariant?.price.compareAtAmount && (
+          {currentCompareAt && (
             <span className="text-sm font-mono text-neutral-500 line-through">
-              ${selectedVariant.price.compareAtAmount.toFixed(2)}
+              ${currentCompareAt.toFixed(2)}
             </span>
           )}
           <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-mono">
             Taxes Included
           </span>
         </div>
+
+        {/* Judge.me Star Rating Badge */}
+        <div className="pt-2">
+          {product.reviewCount > 0 ? (
+            <a
+              href="#reviews"
+              className="inline-flex items-center space-x-2 text-xs text-neutral-400 hover:text-white transition-colors group cursor-pointer"
+            >
+              <div className="flex items-center text-[#ffcc00] text-xs">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span
+                    key={star}
+                    className={
+                      star <= Math.round(product.rating)
+                        ? 'text-[#ffcc00]'
+                        : 'text-neutral-700'
+                    }
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+              <span className="font-mono text-[11px] text-neutral-300 group-hover:underline">
+                {product.rating.toFixed(1)} ({product.reviewCount}{' '}
+                {product.reviewCount === 1 ? 'review' : 'reviews'})
+              </span>
+            </a>
+          ) : (
+            <a
+              href="#reviews"
+              className="inline-flex items-center space-x-2 text-xs text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center text-neutral-700 text-xs">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span key={star}>★</span>
+                ))}
+              </div>
+              <span className="text-[10px] uppercase tracking-wider font-mono">
+                No reviews yet · Write a review
+              </span>
+            </a>
+          )}
+        </div>
       </div>
 
       {/* Variant Option Selectors (Color Swatches & Size Buttons) */}
-      <div className="space-y-6">
-        {product.options.map((option) => {
-          const isColorOption = option.name.toLowerCase().includes('color') || option.name.toLowerCase().includes('shade');
+      {visibleOptions.length > 0 && (
+        <div className="space-y-6">
+          {visibleOptions.map((option) => {
+            const isColorOption =
+              option.name.toLowerCase().includes('color') ||
+              option.name.toLowerCase().includes('shade');
 
-          return (
-            <div key={option.id || option.name} className="space-y-2.5">
-              <div className="flex justify-between text-xs uppercase tracking-widest">
-                <span className="text-neutral-400">{option.name}</span>
-                <span className="text-white font-medium">
-                  {selectedOptions[option.name]}
-                </span>
-              </div>
+            return (
+              <div key={option.id || option.name} className="space-y-2.5">
+                <div className="flex justify-between text-xs uppercase tracking-widest">
+                  <span className="text-neutral-400">{option.name}</span>
+                  <span className="text-white font-medium">
+                    {selectedOptions[option.name]}
+                  </span>
+                </div>
 
-              <div className="flex flex-wrap gap-2.5">
-                {option.values.map((optVal) => {
-                  const isSelected = selectedOptions[option.name] === optVal.value;
+                <div className="flex flex-wrap gap-2.5">
+                  {option.values.map((optVal) => {
+                    const isSelected = selectedOptions[option.name] === optVal.value;
+                    const inStock = isOptionValueAvailable(option.name, optVal.value);
 
-                  if (isColorOption && optVal.hexColor) {
+                    if (isColorOption && optVal.hexColor) {
+                      return (
+                        <button
+                          key={optVal.value}
+                          type="button"
+                          onClick={() => handleOptionChange(option.name, optVal.value)}
+                          className={`relative w-8 h-8 rounded-full border-2 transition-all p-0.5 ${
+                            isSelected
+                              ? 'border-white scale-110'
+                              : 'border-transparent hover:border-neutral-700'
+                          } ${!inStock ? 'opacity-40' : ''}`}
+                          title={`${optVal.name}${!inStock ? ' (Unavailable)' : ''}`}
+                          aria-label={optVal.name}
+                        >
+                          <span
+                            className="block w-full h-full rounded-full border border-black/20"
+                            style={{ backgroundColor: optVal.hexColor }}
+                          />
+                        </button>
+                      );
+                    }
+
                     return (
                       <button
                         key={optVal.value}
                         type="button"
                         onClick={() => handleOptionChange(option.name, optVal.value)}
-                        className={`relative w-8 h-8 rounded-full border-2 transition-all p-0.5 ${
-                          isSelected ? 'border-white scale-110' : 'border-transparent hover:border-neutral-700'
+                        className={`px-4 py-2 text-xs uppercase tracking-wider border transition-all ${
+                          isSelected
+                            ? 'border-white bg-white text-black font-medium'
+                            : inStock
+                            ? 'border-neutral-800 text-neutral-300 hover:border-neutral-600'
+                            : 'border-neutral-900 text-neutral-600 line-through'
                         }`}
-                        title={optVal.name}
-                        aria-label={optVal.name}
                       >
-                        <span
-                          className="block w-full h-full rounded-full border border-black/20"
-                          style={{ backgroundColor: optVal.hexColor }}
-                        />
+                        {optVal.name || optVal.value}
                       </button>
                     );
-                  }
-
-                  return (
-                    <button
-                      key={optVal.value}
-                      type="button"
-                      onClick={() => handleOptionChange(option.name, optVal.value)}
-                      className={`px-4 py-2 text-xs uppercase tracking-wider border transition-all ${
-                        isSelected
-                          ? 'border-white bg-white text-black font-medium'
-                          : 'border-neutral-800 text-neutral-300 hover:border-neutral-600'
-                      }`}
-                    >
-                      {optVal.name || optVal.value}
-                    </button>
-                  );
-                })}
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
 
-        {/* Quantity Selector */}
-        <div className="space-y-2 pt-1">
-          <label className="text-xs uppercase tracking-widest text-neutral-400 block">
-            Quantity
-          </label>
-          <div className="flex items-center w-32 border border-neutral-800 bg-neutral-950">
-            <button
-              type="button"
-              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
-            >
-              -
-            </button>
-            <span className="flex-1 text-center font-mono text-xs text-white">
-              {quantity}
-            </span>
-            <button
-              type="button"
-              onClick={() => setQuantity((q) => q + 1)}
-              className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
-            >
-              +
-            </button>
+          {/* Quantity Selector */}
+          <div className="space-y-2 pt-1">
+            <label className="text-xs uppercase tracking-widest text-neutral-400 block">
+              Quantity
+            </label>
+            <div className="flex items-center w-32 border border-neutral-800 bg-neutral-950">
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
+                aria-label="Decrease quantity"
+              >
+                -
+              </button>
+              <span className="flex-1 text-center font-mono text-xs text-white">
+                {quantity}
+              </span>
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => q + 1)}
+                className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* CTA Buttons */}
       <div className="space-y-3 pt-2">
         <button
           type="button"
           onClick={handleAddToCart}
-          disabled={!selectedVariant?.availableForSale}
+          disabled={!selectedVariant || !selectedVariant.availableForSale}
           className={`w-full py-4 text-xs uppercase tracking-widest font-medium transition-all duration-300 ${
-            !selectedVariant?.availableForSale
+            !selectedVariant
+              ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
+              : !selectedVariant.availableForSale
               ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
               : addedAnimation
               ? 'bg-neutral-900 text-white border border-white'
               : 'bg-white text-black hover:bg-neutral-200 active:scale-[0.99]'
           }`}
         >
-          {!selectedVariant?.availableForSale
-            ? 'Currently Unavailable'
+          {!selectedVariant
+            ? 'Unavailable Combination'
+            : !selectedVariant.availableForSale
+            ? 'Currently Sold Out'
             : addedAnimation
             ? 'Added to Bag ✓'
-            : `Add to Bag — $${((selectedVariant?.price.amount || product.price.amount) * quantity).toFixed(2)}`}
+            : `Add to Bag — $${(currentPrice * quantity).toFixed(2)}`}
         </button>
 
-        {selectedVariant?.availableForSale && (
+        {selectedVariant && selectedVariant.availableForSale && (
           <button
             type="button"
             onClick={handleBuyNow}
@@ -254,7 +350,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           {activeAccordion === 'fit' && (
             <div className="pb-4 text-xs text-neutral-400 font-light leading-relaxed space-y-2">
               <p>True to size. Engineered with multidirectional elasticity to hug natural contours without constriction.</p>
-              <p>Model is 5'9" (175cm) wearing Size Small.</p>
+              <p>Model is 5&apos;9&quot; (175cm) wearing Size Small.</p>
             </div>
           )}
         </div>

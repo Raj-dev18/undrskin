@@ -1,5 +1,6 @@
 import { Product, Collection, FAQItem } from '@/types/product';
 import { MOCK_FAQS } from '@/lib/mock-data';
+import { enrichProductsWithReviews } from '@/lib/judgeme';
 
 /* ============================================================
    ENV & CONFIGURATION
@@ -15,13 +16,24 @@ const SHOP_DOMAIN = SHOPIFY_STORE_DOMAIN.replace(/^https?:\/\//, '').replace(/\/
 let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
 
+function isDynamicServerError(err: any): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err.digest === 'DYNAMIC_SERVER_USAGE' ||
+      (typeof err.message === 'string' && err.message.includes('Dynamic server usage')))
+  );
+}
+
 /* ============================================================
    AUTHENTICATION: SHOPIFY ADMIN ACCESS TOKEN
 ============================================================ */
 
 async function getAdminAccessToken(): Promise<string> {
   if (!SHOP_DOMAIN || !SHOPIFY_CLIENT_ID || !SHOPIFY_CLIENT_SECRET) {
-    throw new Error('Shopify environment variables missing (SHOPIFY_STORE_DOMAIN, SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET)');
+    throw new Error(
+      'Shopify environment variables missing (SHOPIFY_STORE_DOMAIN, SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET)'
+    );
   }
 
   if (cachedToken && Date.now() < tokenExpiresAt - 60000) {
@@ -125,6 +137,7 @@ const PRODUCTS_QUERY = `
         vendor
         productType
         tags
+        status
 
         featuredImage {
           id
@@ -158,6 +171,7 @@ const PRODUCTS_QUERY = `
         options {
           id
           name
+          values
           optionValues {
             name
             swatch {
@@ -210,6 +224,7 @@ const PRODUCT_BY_HANDLE_QUERY = `
       descriptionHtml
       tags
       productType
+      status
 
       featuredImage {
         id
@@ -243,6 +258,7 @@ const PRODUCT_BY_HANDLE_QUERY = `
       options {
         id
         name
+        values
         optionValues {
           name
           swatch {
@@ -284,6 +300,144 @@ const PRODUCT_BY_HANDLE_QUERY = `
   }
 `;
 
+const COLLECTIONS_QUERY = `
+  query Collections($first: Int!) {
+    collections(first: $first) {
+      nodes {
+        id
+        handle
+        title
+        description
+        image {
+          id
+          url
+          altText
+          width
+          height
+        }
+        productsCount {
+          count
+        }
+      }
+    }
+  }
+`;
+
+const COLLECTION_BY_HANDLE_QUERY = `
+  query CollectionByHandle($handle: String!) {
+    collectionByHandle(handle: $handle) {
+      id
+      handle
+      title
+      description
+      image {
+        id
+        url
+        altText
+        width
+        height
+      }
+      productsCount {
+        count
+      }
+      products(first: 100) {
+        nodes {
+          id
+          title
+          handle
+          description
+          descriptionHtml
+          vendor
+          productType
+          tags
+          status
+
+          featuredImage {
+            id
+            url
+            altText
+            width
+            height
+          }
+
+          images(first: 20) {
+            nodes {
+              id
+              url
+              altText
+              width
+              height
+            }
+          }
+
+          priceRangeV2 {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+            maxVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+
+          options {
+            id
+            name
+            values
+            optionValues {
+              name
+              swatch {
+                color
+              }
+            }
+          }
+
+          variants(first: 100) {
+            nodes {
+              id
+              title
+              sku
+              availableForSale
+              price
+              compareAtPrice
+              selectedOptions {
+                name
+                value
+              }
+              image {
+                id
+                url
+                altText
+                width
+                height
+              }
+            }
+          }
+
+          collections(first: 20) {
+            nodes {
+              id
+              handle
+              title
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+const formatPrice = (amount: number, currencyCode: string) => {
+  const locale = currencyCode === 'INR' ? 'en-IN' : 'en-US';
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currencyCode,
+    minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
+
 /* ============================================================
    PRODUCT MAPPER
 ============================================================ */
@@ -291,19 +445,23 @@ const PRODUCT_BY_HANDLE_QUERY = `
 function mapShopifyProduct(product: any): Product {
   const currencyCode = product.priceRangeV2?.minVariantPrice?.currencyCode || 'USD';
 
+  // Badges derived from real Shopify tags
   let badge: 'NEW' | 'BESTSELLER' | 'LIMITED' | 'RESTOCKED' | null = null;
-  const tagList = Array.isArray(product.tags) ? product.tags.map((t: string) => t.toLowerCase()) : [];
+  const tagList = Array.isArray(product.tags)
+    ? product.tags.map((t: string) => t.toLowerCase())
+    : [];
   if (tagList.includes('new') || tagList.includes('new arrival')) badge = 'NEW';
   else if (tagList.includes('bestseller') || tagList.includes('best seller')) badge = 'BESTSELLER';
   else if (tagList.includes('limited') || tagList.includes('limited edition')) badge = 'LIMITED';
   else if (tagList.includes('restocked')) badge = 'RESTOCKED';
 
-  const defaultImage = {
+  // Neutral placeholder for products with no image yet in Shopify
+  const fallbackPlaceholder = {
     id: 'placeholder',
-    url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1000&q=80',
+    url: '/placeholder.svg',
     altText: product.title || 'UNDRSKIN Silhouette',
-    width: 1000,
-    height: 1333,
+    width: 800,
+    height: 1067,
   };
 
   const featuredImage = product.featuredImage
@@ -311,24 +469,135 @@ function mapShopifyProduct(product: any): Product {
         id: product.featuredImage.id || 'feat-img',
         url: product.featuredImage.url,
         altText: product.featuredImage.altText || product.title,
-        width: product.featuredImage.width,
-        height: product.featuredImage.height,
+        width: product.featuredImage.width || 800,
+        height: product.featuredImage.height || 1067,
       }
-    : defaultImage;
+    : fallbackPlaceholder;
 
-  const images = product.images?.nodes?.length
-    ? product.images.nodes.map((img: any) => ({
+  const rawImages = product.images?.nodes || [];
+  const images = rawImages.length
+    ? rawImages.map((img: any) => ({
         id: img.id,
         url: img.url,
         altText: img.altText || product.title,
-        width: img.width,
-        height: img.height,
+        width: img.width || 800,
+        height: img.height || 1067,
       }))
     : [featuredImage];
 
-  const rawDesc = product.description || '';
-  const descParagraphs = rawDesc.split(/\n+/).map((s: string) => s.trim()).filter(Boolean);
-  const details = descParagraphs.slice(1, 5);
+  // Dynamically extract real bullet point features from Shopify descriptionHtml
+  let details: string[] = [];
+  if (product.descriptionHtml) {
+    const listMatches = Array.from(
+      product.descriptionHtml.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)
+    ).map((m: any) =>
+      m[1]
+        .replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g, '&')
+        .replace(/&nbsp;/g, ' ')
+        .trim()
+    ).filter(Boolean);
+
+    if (listMatches.length > 0) {
+      details = listMatches;
+    }
+  }
+
+  // If no HTML list items exist, derive from paragraph sentences if available
+  if (details.length === 0 && product.description) {
+    const rawDesc = product.description.trim();
+    const sentences = rawDesc
+      .split(/\n+/)
+      .map((s: string) => s.trim())
+      .filter((s: string) => s.length > 10 && !s.startsWith('#'));
+    if (sentences.length > 1) {
+      details = sentences.slice(1, 6);
+    }
+  }
+
+  // Find compare-at price from variants if available
+  const variantWithCompareAt = product.variants?.nodes?.find(
+    (v: any) => v.compareAtPrice && Number(v.compareAtPrice) > 0
+  );
+  const compareAtAmount = variantWithCompareAt
+    ? Number(variantWithCompareAt.compareAtPrice)
+    : undefined;
+
+  // Options mapping with availability calculation per option value
+  const variantNodes = product.variants?.nodes || [];
+  const options = (product.options || []).map((option: any) => {
+    let valuesList: Array<{ name: string; value: string; hexColor?: string; inStock?: boolean }> = [];
+
+    if (option.optionValues && option.optionValues.length > 0) {
+      valuesList = option.optionValues.map((ov: any) => {
+        const valName = ov.name || '';
+        const inStock = variantNodes.some(
+          (v: any) =>
+            v.availableForSale &&
+            v.selectedOptions?.some((so: any) => so.name === option.name && so.value === valName)
+        );
+        return {
+          name: valName,
+          value: valName,
+          hexColor: ov.swatch?.color || undefined,
+          inStock: inStock || variantNodes.length === 0,
+        };
+      });
+    } else if (option.values && option.values.length > 0) {
+      valuesList = option.values.map((v: string) => {
+        const inStock = variantNodes.some(
+          (vn: any) =>
+            vn.availableForSale &&
+            vn.selectedOptions?.some((so: any) => so.name === option.name && so.value === v)
+        );
+        return {
+          name: v,
+          value: v,
+          inStock: inStock || variantNodes.length === 0,
+        };
+      });
+    }
+
+    return {
+      id: option.id || `opt-${option.name}`,
+      name: option.name,
+      values: valuesList,
+    };
+  });
+
+  const variants = variantNodes.map((variant: any) => {
+    const vAmount = Number(variant.price || 0);
+    const vCompareAtAmount = variant.compareAtPrice ? Number(variant.compareAtPrice) : undefined;
+    return {
+      id: variant.id,
+      title: variant.title,
+      sku: variant.sku || '',
+      availableForSale: Boolean(variant.availableForSale),
+      selectedOptions: variant.selectedOptions || [],
+      price: {
+        amount: vAmount,
+        currencyCode,
+        compareAtAmount: vCompareAtAmount,
+        formattedAmount: formatPrice(vAmount, currencyCode),
+        formattedCompareAtAmount: vCompareAtAmount ? formatPrice(vCompareAtAmount, currencyCode) : undefined,
+      },
+      image: variant.image
+        ? {
+            id: variant.image.id,
+            url: variant.image.url,
+            altText: variant.image.altText || product.title,
+            width: variant.image.width || 800,
+            height: variant.image.height || 1067,
+          }
+        : undefined,
+    };
+  });
+
+  const availableForSale = variants.length > 0
+    ? variants.some((v: any) => v.availableForSale)
+    : false;
+
+  const productAmount = Number(product.priceRangeV2?.minVariantPrice?.amount || (variants.length > 0 ? variants[0].price.amount : 0));
 
   return {
     id: product.id,
@@ -337,13 +606,9 @@ function mapShopifyProduct(product: any): Product {
     subtitle: product.productType || undefined,
     description: product.description || '',
     descriptionHtml: product.descriptionHtml || undefined,
-    details: details.length > 0 ? details : [
-      'Second-skin ergonomic cut with zero-pressure seam technology',
-      'Breathable, lightweight textile architecture',
-      'OEKO-TEX Standard certified hypoallergenic finish',
-    ],
+    details,
     fabricAndCare: [
-      'Gentle cold machine wash in wash bag',
+      'Gentle cold machine wash in wash bag with like neutrals',
       'Do not tumble dry or bleach',
       'Flat dry in shade to preserve stretch elasticity',
     ],
@@ -352,56 +617,22 @@ function mapShopifyProduct(product: any): Product {
       '30-day discreet returns on unworn items with tags intact',
     ],
     price: {
-      amount: Number(product.priceRangeV2?.minVariantPrice?.amount || 0),
+      amount: productAmount,
       currencyCode,
-      compareAtAmount: product.variants?.nodes?.[0]?.compareAtPrice
-        ? Number(product.variants.nodes[0].compareAtPrice)
-        : undefined,
+      compareAtAmount,
+      formattedAmount: formatPrice(productAmount, currencyCode),
+      formattedCompareAtAmount: compareAtAmount ? formatPrice(compareAtAmount, currencyCode) : undefined,
     },
     featuredImage,
     images,
-    options:
-      product.options?.map((option: any) => ({
-        id: option.id,
-        name: option.name,
-        values:
-          option.optionValues?.map((value: any) => ({
-            name: value.name,
-            value: value.name,
-            hexColor: value.swatch?.color || undefined,
-            inStock: true,
-          })) || [],
-      })) || [],
-    variants:
-      product.variants?.nodes?.map((variant: any) => ({
-        id: variant.id,
-        title: variant.title,
-        sku: variant.sku || '',
-        availableForSale: variant.availableForSale ?? true,
-        selectedOptions: variant.selectedOptions || [],
-        price: {
-          amount: Number(variant.price || 0),
-          currencyCode,
-          compareAtAmount: variant.compareAtPrice ? Number(variant.compareAtPrice) : undefined,
-        },
-        image: variant.image
-          ? {
-              id: variant.image.id,
-              url: variant.image.url,
-              altText: variant.image.altText || product.title,
-              width: variant.image.width,
-              height: variant.image.height,
-            }
-          : undefined,
-      })) || [],
+    options,
+    variants,
     tags: product.tags || [],
-    collections:
-      product.collections?.nodes?.map((col: any) => col.handle) || [],
-    availableForSale:
-      product.variants?.nodes?.some((v: any) => v.availableForSale) ?? true,
+    collections: product.collections?.nodes?.map((col: any) => col.handle) || [],
+    availableForSale,
     badge,
-    rating: 4.9,
-    reviewCount: 48,
+    rating: 0,
+    reviewCount: 0,
   };
 }
 
@@ -412,29 +643,95 @@ function mapShopifyProduct(product: any): Product {
 export async function getProducts(options?: {
   collection?: string;
   query?: string;
-  sortKey?: 'PRICE' | 'BEST_SELLING' | 'CREATED_AT';
+  sortKey?:
+    | 'CREATED_AT'
+    | 'ID'
+    | 'INVENTORY_TOTAL'
+    | 'PRODUCT_TYPE'
+    | 'PUBLISHED_AT'
+    | 'RELEVANCE'
+    | 'TITLE'
+    | 'UPDATED_AT'
+    | 'VENDOR'
+    | 'PRICE'
+    | 'BEST_SELLING';
   reverse?: boolean;
 }): Promise<Product[]> {
   try {
+    // If collection is specified, prefer direct Shopify collection query
+    if (options?.collection && options.collection !== 'all') {
+      const colData = await shopifyAdminRequest<any>(COLLECTION_BY_HANDLE_QUERY, {
+        handle: options.collection,
+      });
+
+      if (colData?.collectionByHandle?.products?.nodes) {
+        const prods = colData.collectionByHandle.products.nodes
+          .filter((p: any) => p.status === 'ACTIVE')
+          .map(mapShopifyProduct);
+
+        if (options.sortKey === 'PRICE') {
+          prods.sort((a: Product, b: Product) =>
+            options.reverse ? b.price.amount - a.price.amount : a.price.amount - b.price.amount
+          );
+        }
+
+        return await enrichProductsWithReviews(prods);
+      }
+    }
+
+    // Prepare Shopify Admin GraphQL query parameters
+    let shopifyQuery = 'status:active';
+    if (options?.query && options.query.trim()) {
+      shopifyQuery = `status:active AND (${options.query.trim()})`;
+    }
+
+    // Only pass valid Shopify Admin API ProductSortKeys
+    const allowedSortKeys = [
+      'CREATED_AT',
+      'ID',
+      'INVENTORY_TOTAL',
+      'PRODUCT_TYPE',
+      'PUBLISHED_AT',
+      'RELEVANCE',
+      'TITLE',
+      'UPDATED_AT',
+      'VENDOR',
+    ];
+
+    const sortKeyToPass =
+      options?.sortKey && allowedSortKeys.includes(options.sortKey)
+        ? options.sortKey
+        : undefined;
+
     const data = await shopifyAdminRequest<any>(PRODUCTS_QUERY, {
       first: 100,
-      query: options?.query,
-      sortKey: options?.sortKey,
+      query: shopifyQuery,
+      sortKey: sortKeyToPass,
       reverse: options?.reverse ?? false,
     });
 
-    let products = data?.products?.nodes || [];
+    let rawProducts = data?.products?.nodes || [];
 
     if (options?.collection && options.collection !== 'all') {
-      products = products.filter((product: any) =>
-        product.collections?.nodes?.some(
-          (col: any) => col.handle === options.collection
-        )
+      rawProducts = rawProducts.filter((product: any) =>
+        product.collections?.nodes?.some((col: any) => col.handle === options.collection)
       );
     }
 
-    return products.map(mapShopifyProduct);
+    const products = rawProducts.map(mapShopifyProduct);
+
+    // In-memory sorting when sortKey is PRICE
+    if (options?.sortKey === 'PRICE') {
+      products.sort((a: Product, b: Product) =>
+        options.reverse ? b.price.amount - a.price.amount : a.price.amount - b.price.amount
+      );
+    }
+
+    return await enrichProductsWithReviews(products);
   } catch (error: any) {
+    if (isDynamicServerError(error)) {
+      throw error;
+    }
     console.error('getProducts failed:', error.message || error);
     return [];
   }
@@ -444,8 +741,16 @@ export async function getProductByHandle(handle: string): Promise<Product | unde
   try {
     const data = await shopifyAdminRequest<any>(PRODUCT_BY_HANDLE_QUERY, { handle });
     if (!data?.productByHandle) return undefined;
-    return mapShopifyProduct(data.productByHandle);
+    if (data.productByHandle.status && data.productByHandle.status !== 'ACTIVE') {
+      return undefined;
+    }
+    const mapped = mapShopifyProduct(data.productByHandle);
+    const enriched = await enrichProductsWithReviews([mapped]);
+    return enriched[0];
   } catch (error: any) {
+    if (isDynamicServerError(error)) {
+      throw error;
+    }
     console.error(`getProductByHandle(${handle}) failed:`, error.message || error);
     return undefined;
   }
@@ -462,111 +767,76 @@ export async function getFeaturedProducts(limit = 4): Promise<Product[]> {
 
 export async function getCollections(): Promise<Collection[]> {
   try {
-    const COLLECTIONS_QUERY = `
-      query Collections {
-        collections(first: 20) {
-          nodes {
-            id
-            handle
-            title
-            description
-            image {
-              id
-              url
-              altText
-              width
-              height
-            }
-            productsCount {
-              count
-            }
-          }
-        }
-      }
-    `;
-
-    const data = await shopifyAdminRequest<any>(COLLECTIONS_QUERY);
+    const data = await shopifyAdminRequest<any>(COLLECTIONS_QUERY, { first: 50 });
     if (data?.collections?.nodes?.length) {
       return data.collections.nodes.map((c: any) => ({
         id: c.id,
         handle: c.handle,
         title: c.title,
-        description: c.description || `Architectural exploration of ${c.title.toLowerCase()}.`,
+        description: c.description || `Curated silhouettes in the ${c.title.toLowerCase()} archive.`,
         image: c.image
           ? {
               id: c.image.id,
               url: c.image.url,
               altText: c.image.altText || c.title,
-              width: c.image.width,
-              height: c.image.height,
+              width: c.image.width || 800,
+              height: c.image.height || 1067,
             }
           : {
               id: 'col-placeholder',
-              url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
+              url: '/placeholder.svg',
               altText: c.title,
+              width: 800,
+              height: 1067,
             },
         productCount: c.productsCount?.count ?? 0,
       }));
     }
-  } catch {
-    // Fallback: derive collections dynamically from active products
-  }
-
-  try {
-    const products = await getProducts();
-    const map = new Map<string, Collection>();
-
-    for (const prod of products) {
-      for (const colHandle of prod.collections) {
-        if (!map.has(colHandle)) {
-          const title = colHandle
-            .split('-')
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(' ');
-          map.set(colHandle, {
-            id: `col-${colHandle}`,
-            handle: colHandle,
-            title,
-            description: `Curated silhouettes in the ${title} archive.`,
-            image: prod.featuredImage,
-            productCount: 1,
-          });
-        } else {
-          const existing = map.get(colHandle)!;
-          existing.productCount += 1;
-        }
-      }
-    }
-
-    return Array.from(map.values());
+    return [];
   } catch (error: any) {
-    console.error('getCollections fallback error:', error.message || error);
+    if (isDynamicServerError(error)) {
+      throw error;
+    }
+    console.error('getCollections failed:', error.message || error);
     return [];
   }
 }
 
 export async function getCollectionByHandle(handle: string): Promise<Collection | undefined> {
-  const collections = await getCollections();
-  const found = collections.find((c) => c.handle === handle);
-  if (found) return found;
+  try {
+    const data = await shopifyAdminRequest<any>(COLLECTION_BY_HANDLE_QUERY, { handle });
+    const c = data?.collectionByHandle;
+    if (!c) return undefined;
 
-  const title = handle
-    .split('-')
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ');
-
-  return {
-    id: `col-${handle}`,
-    handle,
-    title,
-    description: `Curated archive silhouettes for ${title}.`,
-    image: {
-      id: 'default',
-      url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
-      altText: title,
-    },
-    productCount: 0,
-  };
+    return {
+      id: c.id,
+      handle: c.handle,
+      title: c.title,
+      description: c.description || `Curated silhouettes in the ${c.title.toLowerCase()} archive.`,
+      image: c.image
+        ? {
+            id: c.image.id,
+            url: c.image.url,
+            altText: c.image.altText || c.title,
+            width: c.image.width || 800,
+            height: c.image.height || 1067,
+          }
+        : {
+            id: 'col-placeholder',
+            url: '/placeholder.svg',
+            altText: c.title,
+            width: 800,
+            height: 1067,
+          },
+      productCount: c.productsCount?.count ?? 0,
+    };
+  } catch (error: any) {
+    if (isDynamicServerError(error)) {
+      throw error;
+    }
+    console.error(`getCollectionByHandle(${handle}) failed:`, error.message || error);
+    return undefined;
+  }
 }
 
 /* ============================================================
@@ -576,19 +846,45 @@ export async function getCollectionByHandle(handle: string): Promise<Collection 
 export async function searchProducts(query: string): Promise<Product[]> {
   if (!query || !query.trim()) return [];
 
-  const clean = query.trim().replace(/['"]/g, '');
-  const searchQuery = `title:*${clean}* OR tag:*${clean}* OR product_type:*${clean}*`;
+  // Sanitize query to prevent GraphQL search syntax breakage
+  const clean = query.replace(/[\\:()"]/g, ' ').trim();
+  if (!clean) return [];
+
+  const searchQuery = `(${clean} OR title:*${clean}* OR tag:*${clean}* OR product_type:*${clean}*)`;
 
   return getProducts({ query: searchQuery });
 }
 
 /* ============================================================
-   CHECKOUT SESSION GENERATOR (SHOPIFY DRAFT ORDER / CHECKOUT)
+   CHECKOUT SESSION GENERATOR (SHOPIFY DRAFT ORDER / PERMALINK)
 ============================================================ */
 
 export async function createShopifyCheckoutUrl(
   lineItems: { variantId: string; quantity: number }[]
 ): Promise<string> {
+  if (!lineItems || lineItems.length === 0) {
+    throw new Error('No line items provided for checkout.');
+  }
+
+  const formattedLines = lineItems.map((item) => {
+    const rawId = String(item.variantId || '');
+    const numericId = rawId.replace(/\D/g, '');
+    const gid = rawId.startsWith('gid://')
+      ? rawId
+      : `gid://shopify/ProductVariant/${numericId}`;
+    return {
+      gid,
+      numericId,
+      quantity: Math.max(1, Number(item.quantity) || 1),
+    };
+  });
+
+  // Safe fallback builder: native Shopify Cart Checkout permalink
+  const permalinkUrl = `https://${SHOP_DOMAIN}/cart/${formattedLines
+    .map((item) => `${item.numericId}:${item.quantity}`)
+    .join(',')}`;
+
+  // Try DraftOrderCreate mutation
   const mutation = `
     mutation DraftOrderCreate($input: DraftOrderInput!) {
       draftOrderCreate(input: $input) {
@@ -604,30 +900,35 @@ export async function createShopifyCheckoutUrl(
     }
   `;
 
-  const formattedLines = lineItems.map((item) => ({
-    variantId: item.variantId.startsWith('gid://')
-      ? item.variantId
-      : `gid://shopify/ProductVariant/${item.variantId.replace(/\D/g, '')}`,
-    quantity: item.quantity,
-  }));
+  try {
+    const data = await shopifyAdminRequest<any>(mutation, {
+      input: {
+        lineItems: formattedLines.map((item) => ({
+          variantId: item.gid,
+          quantity: item.quantity,
+        })),
+      },
+    });
 
-  const data = await shopifyAdminRequest<any>(mutation, {
-    input: {
-      lineItems: formattedLines,
-    },
-  });
+    const userErrors = data?.draftOrderCreate?.userErrors;
+    if (userErrors && userErrors.length > 0) {
+      console.warn('Shopify DraftOrder user errors, falling back to cart permalink:', userErrors[0].message);
+      return permalinkUrl;
+    }
 
-  const errors = data?.draftOrderCreate?.userErrors;
-  if (errors && errors.length > 0) {
-    throw new Error(errors[0].message);
+    const invoiceUrl = data?.draftOrderCreate?.draftOrder?.invoiceUrl;
+    if (invoiceUrl) {
+      return invoiceUrl;
+    }
+  } catch (err: any) {
+    // When custom app lacks `write_draft_orders` scope, log and safely return direct checkout permalink
+    console.warn(
+      'DraftOrder creation not available for current app scopes. Falling back to secure Shopify cart permalink:',
+      err.message || err
+    );
   }
 
-  const invoiceUrl = data?.draftOrderCreate?.draftOrder?.invoiceUrl;
-  if (!invoiceUrl) {
-    throw new Error('Shopify failed to generate a valid checkout invoice URL.');
-  }
-
-  return invoiceUrl;
+  return permalinkUrl;
 }
 
 /* ============================================================
