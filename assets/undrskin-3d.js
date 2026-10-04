@@ -1,7 +1,7 @@
 /**
  * UNDRSKIN REAL 3D GLTF PRODUCT VIEWER (assets/undrskin-3d.js)
- * Loads real .glb models via THREE.GLTFLoader, handles variant swatches,
- * isolated canvas touch drag/zoom, and exploded component visualization.
+ * Exclusively loads real GLTF/GLB models via THREE.GLTFLoader.
+ * Pure GLTF scene hierarchy rendering.
  */
 
 (function () {
@@ -37,7 +37,7 @@
     var threeState = null;
 
     /* --------------------------------------------------------------------------
-       1. REAL 3D GLTF MODEL LOADER & THREE.JS ENGINE
+       1. REAL THREE.JS GLTFLOADER ENGINE
        -------------------------------------------------------------------------- */
     if (canvas && typeof THREE !== 'undefined') {
       threeState = setupGLTFEngine(canvas, container, modelUrl, fallbackImg);
@@ -53,16 +53,17 @@
         powerPreference: 'high-performance'
       });
 
-      // Cap devicePixelRatio for smooth mobile performance
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
       renderer.setSize(canvasEl.clientWidth, canvasEl.clientHeight);
-      renderer.outputEncoding = THREE.sRGBEncoding;
+      if (THREE.sRGBEncoding) {
+        renderer.outputEncoding = THREE.sRGBEncoding;
+      }
 
       var scene = new THREE.Scene();
       var camera = new THREE.PerspectiveCamera(35, canvasEl.clientWidth / canvasEl.clientHeight, 0.1, 100);
       camera.position.set(0, 0, 5.5);
 
-      // Lights
+      // Lighting Setup
       var ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
       scene.add(ambientLight);
 
@@ -81,7 +82,7 @@
       var meshComponents = [];
       var isExploded = false;
 
-      // Load Real GLTF / GLB Product Model
+      // STRICT REQUIREMENT: Exclusively use THREE.GLTFLoader for GLB assets
       if (glbUrl && typeof THREE.GLTFLoader !== 'undefined') {
         var loader = new THREE.GLTFLoader();
         loader.load(
@@ -89,7 +90,7 @@
           function (gltf) {
             loadedModel = gltf.scene;
 
-            // Center & Scale Model
+            // Automatically Calculate Bounding Box, Center, and Scale
             var box = new THREE.Box3().setFromObject(loadedModel);
             var center = box.getCenter(new THREE.Vector3());
             loadedModel.position.sub(center);
@@ -101,7 +102,7 @@
               loadedModel.scale.set(scale, scale, scale);
             }
 
-            // Inspect & Index Mesh Hierarchy
+            // Traverse & Index Actual Named GLB Meshes Only
             loadedModel.traverse(function (child) {
               if (child.isMesh) {
                 child.userData.origPosition = child.position.clone();
@@ -117,39 +118,16 @@
           },
           undefined,
           function (err) {
-            console.warn('[UndrSkin 3D] GLB Load Failed, using fallback image:', err);
+            console.warn('[UndrSkin 3D] GLB model failed to load. Falling back to product image:', err);
             if (fallbackEl) fallbackEl.classList.add('is-visible');
           }
         );
       } else {
-        // Create Procedural Procedural 3D Garment Mesh as robust runtime fallback
-        var geo = new THREE.CylinderGeometry(1.2, 0.9, 1.4, 32, 16, true);
-        var mat = new THREE.MeshStandardMaterial({
-          color: 0xb97073,
-          roughness: 0.5,
-          metalness: 0.1,
-          side: THREE.DoubleSide
-        });
-        loadedModel = new THREE.Mesh(geo, mat);
-
-        // Add Waistband Component Mesh
-        var waistbandGeo = new THREE.CylinderGeometry(1.22, 1.2, 0.25, 32);
-        var waistbandMat = new THREE.MeshStandardMaterial({ color: 0x7e1626, roughness: 0.4 });
-        var waistbandMesh = new THREE.Mesh(waistbandGeo, waistbandMat);
-        waistbandMesh.name = 'Waistband';
-        waistbandMesh.position.y = 0.7;
-        waistbandMesh.userData.origPosition = waistbandMesh.position.clone();
-
-        loadedModel.name = 'MainFabric';
-        loadedModel.userData.origPosition = loadedModel.position.clone();
-
-        productGroup.add(loadedModel);
-        productGroup.add(waistbandMesh);
-
-        meshComponents.push(loadedModel, waistbandMesh);
+        // STRICT REQUIREMENT: If GLB is missing, show fallback image directly. NO FAKE MESHES!
+        if (fallbackEl) fallbackEl.classList.add('is-visible');
       }
 
-      // Interactive Touch & Mouse Rotation (Isolated to Canvas)
+      // Touch & Mouse Rotation Dragging (Isolated to Canvas)
       var isDragging = false;
       var previousPosition = { x: 0, y: 0 };
       var targetRotation = { x: 0, y: 0 };
@@ -182,7 +160,6 @@
       }
 
       function onWheel(e) {
-        // Isolated Canvas Zoom
         e.preventDefault();
         targetZoom += e.deltaY * 0.003;
         targetZoom = Math.max(3.0, Math.min(8.0, targetZoom));
@@ -197,7 +174,7 @@
       window.addEventListener('touchend', onPointerUp);
       canvasEl.addEventListener('wheel', onWheel, { passive: false });
 
-      // Resize Handling
+      // Resize Listener
       function onWindowResize() {
         if (!canvasEl) return;
         var width = canvasEl.clientWidth;
@@ -208,7 +185,7 @@
       }
       window.addEventListener('resize', onWindowResize);
 
-      // Render Loop with Offscreen Pause Optimization
+      // Render Loop & IntersectionObserver Offscreen Pause
       var animFrameId = null;
       var isVisible = true;
 
@@ -221,7 +198,6 @@
         animFrameId = requestAnimationFrame(animate);
         if (!isVisible) return;
 
-        // Smooth Rotation Dampening & Zoom Interpolation
         productGroup.rotation.y += (targetRotation.y - productGroup.rotation.y) * 0.08;
         productGroup.rotation.x += (targetRotation.x - productGroup.rotation.x) * 0.08;
         camera.position.z += (targetZoom - camera.position.z) * 0.08;
@@ -264,6 +240,7 @@
         meshComponents: meshComponents,
         setMeshColor: function (hexColor) {
           var color = new THREE.Color(hexColor);
+          // Modifies ONLY the materials of actual GLB meshes
           meshComponents.forEach(function (child) {
             if (child.material) {
               if (Array.isArray(child.material)) {
@@ -277,10 +254,12 @@
         },
         toggleExplodeView: function (shouldExplode) {
           isExploded = shouldExplode;
+          if (!meshComponents.length) return;
+
           meshComponents.forEach(function (child, idx) {
             var origPos = child.userData.origPosition || new THREE.Vector3();
             if (shouldExplode) {
-              var offset = new THREE.Vector3(0, (idx + 1) * 0.4, 0);
+              var offset = new THREE.Vector3(0, (idx + 1) * 0.35, 0);
               child.position.copy(origPos.clone().add(offset));
             } else {
               child.position.copy(origPos);
@@ -301,7 +280,7 @@
     }
 
     /* --------------------------------------------------------------------------
-       2. EXPLODED COMPONENT VIEW TRIGGER (👁 Button & Modal)
+       2. EXPLODED VIEW TRIGGER (👁 Button & Modal)
        -------------------------------------------------------------------------- */
     if (explodedBtn && explodedModal) {
       explodedBtn.addEventListener('click', function () {
@@ -317,7 +296,6 @@
       });
     }
 
-    // ESC Key Modal Close Accessibility
     window.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && explodedModal && explodedModal.classList.contains('is-open')) {
         explodedModal.classList.remove('is-open');
@@ -326,7 +304,7 @@
     });
 
     /* --------------------------------------------------------------------------
-       3. SHOPIFY COLOR SWATCHES & VARIANT SELECTION (SCOPED TO 3D MESH ONLY)
+       3. VARIANT SELECTION & MESH COLOR UPDATES
        -------------------------------------------------------------------------- */
     var colorSwatches = container.querySelectorAll('.undrskin-swatch-btn');
     var sizeBtns = container.querySelectorAll('.undrskin-size-btn');
@@ -371,7 +349,6 @@
         colorSwatches.forEach(function (s) { s.classList.remove('is-active'); });
         swatch.classList.add('is-active');
 
-        // Update ONLY the 3D Product Mesh Material Color
         var hex = swatch.dataset.hex;
         if (threeState && hex) {
           threeState.setMeshColor(hex);
