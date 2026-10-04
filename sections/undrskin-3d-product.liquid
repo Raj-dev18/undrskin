@@ -1,0 +1,287 @@
+{% comment %}
+  ============================================================================
+  UNDRSKIN 3D PRODUCT SECTION (sections/undrskin-3d-product.liquid)
+  Native Shopify Theme Section with 3D WebGL Viewer & Exploded View Experience
+  ============================================================================
+{% endcomment %}
+
+{{ 'undrskin-3d.css' | asset_url | stylesheet_tag }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script src="{{ 'undrskin-3d.js' | asset_url }}" defer></script>
+
+{% assign current_variant = product.selected_or_first_available_variant %}
+
+<section class="undrskin-3d-product" id="Undrskin3D-{{ section.id }}" data-section-id="{{ section.id }}">
+  <div class="undrskin-container">
+    
+    <!-- Hero Product 2-Column Grid -->
+    <div class="undrskin-hero-grid">
+      
+      <!-- LEFT COLUMN: 3D Product Canvas Viewer -->
+      <div class="undrskin-3d-stage-wrapper">
+        <div class="undrskin-3d-stage">
+          <canvas class="undrskin-3d-canvas"></canvas>
+          
+          {% if section.settings.show_exploded_btn %}
+            <button type="button" class="undrskin-exploded-btn" aria-label="Explore internal product layers">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+              </svg>
+              <span>{{ section.settings.exploded_btn_label | default: "WHAT'S INSIDE?" }}</span>
+            </button>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: Product Form & Selectors -->
+      <div class="undrskin-details-panel">
+        <div class="undrskin-eyebrow">
+          {{ section.settings.eyebrow_text | default: "EVERYDAY TRIO · PACK OF 3" }}
+        </div>
+        
+        <h1 class="undrskin-product-title">
+          {{ product.title | default: "The Bamboo Hipster" }}
+        </h1>
+
+        <div class="undrskin-price-wrapper">
+          <span class="undrskin-price">
+            {{ current_variant.price | money }}
+          </span>
+          {% if current_variant.compare_at_price > current_variant.price %}
+            <span class="undrskin-compare-price">
+              {{ current_variant.compare_at_price | money }}
+            </span>
+            <span class="undrskin-badge-save">
+              SAVE {{ current_variant.compare_at_price | minus: current_variant.price | times: 100.0 | divided_by: current_variant.compare_at_price | round }}%
+            </span>
+          {% endif %}
+        </div>
+
+        {% if product.description != blank %}
+          <div class="undrskin-description">
+            {{ product.description }}
+          </div>
+        {% else %}
+          <div class="undrskin-description">
+            Soft bamboo essentials designed to disappear on skin and move through every day with effortless comfort.
+          </div>
+        {% endif %}
+
+        <!-- Variant Selection Form -->
+        <form method="post" action="/cart/add" class="undrskin-variant-form" data-type="add-to-cart-form">
+          <input type="hidden" name="id" value="{{ current_variant.id }}">
+
+          <!-- Colour Option Selector -->
+          <div class="undrskin-option-group">
+            <div class="undrskin-option-header">
+              <span>Colourway</span>
+            </div>
+            <div class="undrskin-color-swatches">
+              <button type="button" class="undrskin-swatch-btn is-active" data-value="Dusty Rose" data-hex="#B97073" aria-label="Dusty Rose">
+                <span class="swatch-inner" style="background-color: #B97073;"></span>
+              </button>
+              <button type="button" class="undrskin-swatch-btn" data-value="Maroon" data-hex="#7E1626" aria-label="Maroon">
+                <span class="swatch-inner" style="background-color: #7E1626;"></span>
+              </button>
+              <button type="button" class="undrskin-swatch-btn" data-value="Onyx Black" data-hex="#1B1717" aria-label="Onyx Black">
+                <span class="swatch-inner" style="background-color: #1B1717;"></span>
+              </button>
+              <button type="button" class="undrskin-swatch-btn" data-value="Nude Sand" data-hex="#E2BC97" aria-label="Nude Sand">
+                <span class="swatch-inner" style="background-color: #E2BC97;"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Size Option Selector -->
+          <div class="undrskin-option-group">
+            <div class="undrskin-option-header">
+              <span>Size</span>
+              <button type="button" class="undrskin-size-guide-trigger">Size Guide</button>
+            </div>
+            <div class="undrskin-size-options">
+              <button type="button" class="undrskin-size-btn" data-value="XS">XS</button>
+              <button type="button" class="undrskin-size-btn" data-value="S">S</button>
+              <button type="button" class="undrskin-size-btn is-active" data-value="M">M</button>
+              <button type="button" class="undrskin-size-btn" data-value="L">L</button>
+              <button type="button" class="undrskin-size-btn" data-value="XL">XL</button>
+              <button type="button" class="undrskin-size-btn" data-value="XXL">XXL</button>
+            </div>
+          </div>
+
+          <!-- Add to Bag CTA Button -->
+          <button type="submit" class="undrskin-add-to-bag-btn" {% unless current_variant.available %}disabled{% endunless %}>
+            <span>
+              {% if current_variant.available %}
+                ADD TO BAG
+              {% else %}
+                SOLD OUT
+              {% endif %}
+            </span>
+          </button>
+        </form>
+
+        <!-- Mobile Accordions for Editorial Content -->
+        <div class="undrskin-accordions-wrapper">
+          <div class="undrskin-accordion-item is-active">
+            <button type="button" class="undrskin-accordion-header">
+              <span>FIBRE & MATERIAL</span>
+              <span class="undrskin-accordion-icon">+</span>
+            </button>
+            <div class="undrskin-accordion-content">
+              <p>95% organic bamboo viscose · 5% spandex. Spun from natural cellulose grass for ultra-smooth skin contact.</p>
+            </div>
+          </div>
+
+          <div class="undrskin-accordion-item">
+            <button type="button" class="undrskin-accordion-header">
+              <span>FIT & CONSTRUCTION</span>
+              <span class="undrskin-accordion-icon">+</span>
+            </button>
+            <div class="undrskin-accordion-content">
+              <p>Self-fabric elastic-free waistband with full seat coverage that lays flat without pinching or digging in.</p>
+            </div>
+          </div>
+
+          <div class="undrskin-accordion-item">
+            <button type="button" class="undrskin-accordion-header">
+              <span>BREATHABILITY & CARE</span>
+              <span class="undrskin-accordion-icon">+</span>
+            </button>
+            <div class="undrskin-accordion-content">
+              <p>Moisture-wicking, temperature regulating, and machine washable at 30°C. Tumble dry low.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Exploded View Fullscreen Modal -->
+  <div class="undrskin-exploded-modal" aria-hidden="true">
+    <div class="undrskin-exploded-header">
+      <h3 class="undrskin-exploded-title">Exploded Layer View</h3>
+      <button type="button" class="undrskin-exploded-close" aria-label="Close modal">&times;</button>
+    </div>
+    
+    <div class="undrskin-exploded-body">
+      <div class="undrskin-annotation-layer">
+        <!-- Annotation Card 1: Outer Fabric -->
+        <div class="undrskin-annotation-card" style="top: 20%; left: 15%;">
+          <h4>1. Outer Fabric</h4>
+          <p>95% Bamboo Viscose woven for ultra-soft, seamless contact against skin.</p>
+        </div>
+
+        <!-- Annotation Card 2: Waistband -->
+        <div class="undrskin-annotation-card" style="top: 25%; right: 15%;">
+          <h4>2. Self Waistband</h4>
+          <p>Soft double-layered bamboo fabric that holds firm without pinching.</p>
+        </div>
+
+        <!-- Annotation Card 3: Spandex Core -->
+        <div class="undrskin-annotation-card" style="bottom: 25%; left: 20%;">
+          <h4>3. 5% Spandex Stretch</h4>
+          <p>Micro-elastics providing 4-way flexibility that retains shape wear after wear.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Variants JSON Data Object -->
+  <script type="application/json" data-product-variants-json>
+    {{ product.variants | json }}
+  </script>
+</section>
+
+<!-- Collection Product Grid Section (3 Columns Desktop / 2 Columns Mobile) -->
+{% if section.settings.show_collection_grid %}
+  <section class="undrskin-collection-section">
+    <div class="undrskin-container">
+      <div class="undrskin-collection-header">
+        <h2 class="undrskin-collection-title">{{ section.settings.collection_title | default: "The Collection" }}</h2>
+        <p>Pick your favourite trios and everyday essentials</p>
+      </div>
+
+      <div class="undrskin-product-grid">
+        {% assign collection_handle = section.settings.collection | default: 'all' %}
+        {% for card_product in collections[collection_handle].products limit: 6 %}
+          <a href="{{ card_product.url }}" class="undrskin-card">
+            <div class="undrskin-card-image-wrapper">
+              {% if card_product.featured_image %}
+                <img src="{{ card_product.featured_image | image_url: width: 600 }}" alt="{{ card_product.title | escape }}" loading="lazy">
+              {% endif %}
+            </div>
+            <div class="undrskin-card-details">
+              <h3 class="undrskin-card-title">{{ card_product.title }}</h3>
+              <div class="undrskin-card-price">{{ card_product.price | money }}</div>
+            </div>
+          </a>
+        {% else %}
+          {% for i in (1..6) %}
+            <div class="undrskin-card">
+              <div class="undrskin-card-image-wrapper" style="background:#E2BC97; display:grid; place-items:center;">
+                <span style="font-family:var(--us-font-display); font-size:1.5rem; color:#1B1717;">UndrSkin</span>
+              </div>
+              <div class="undrskin-card-details">
+                <h3 class="undrskin-card-title">Everyday Trio Pack {{ i }}</h3>
+                <div class="undrskin-card-price">₹1,999</div>
+              </div>
+            </div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+{% schema %}
+{
+  "name": "UndrSkin 3D Product",
+  "tag": "section",
+  "class": "undrskin-3d-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow_text",
+      "label": "Eyebrow Subtitle",
+      "default": "EVERYDAY TRIO · PACK OF 3"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_exploded_btn",
+      "label": "Show Exploded View Button (👁)",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "exploded_btn_label",
+      "label": "Exploded View Button Label",
+      "default": "WHAT'S INSIDE?"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_grid",
+      "label": "Show Collection Product Grid",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "collection_title",
+      "label": "Collection Grid Title",
+      "default": "The Collection"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Featured Collection"
+    }
+  ],
+  "presets": [
+    {
+      "name": "UndrSkin 3D Product",
+      "category": "Product"
+    }
+  ]
+}
+{% endschema %}

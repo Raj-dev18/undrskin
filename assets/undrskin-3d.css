@@ -1,0 +1,600 @@
+/* ==========================================================================
+   UNDRSKIN 3D SHOPIFY THEME STYLES (assets/undrskin-3d.css)
+   Scoped to .undrskin-3d-product to prevent theme style conflicts
+   ========================================================================== */
+
+:root {
+  --us-rose: #B97073;
+  --us-wine: #7E1626;
+  --us-dark: #1B1717;
+  --us-sand: #E2BC97;
+  --us-sage: #A6C7B7;
+  --us-cream: #F1E9DF;
+  --us-font-display: "Canela", "Playfair Display", Georgia, serif;
+  --us-font-sans: "Graphik", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --us-radius: 999px;
+  --us-transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.undrskin-3d-product {
+  position: relative;
+  width: 100%;
+  background-color: var(--us-sage);
+  color: var(--us-dark);
+  font-family: var(--us-font-sans);
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.undrskin-3d-product * {
+  box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   Layout Grid & Container
+   -------------------------------------------------------------------------- */
+.undrskin-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2.5rem);
+}
+
+.undrskin-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: start;
+}
+
+@media (max-width: 990px) {
+  .undrskin-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3D Stage Viewer (Left Column)
+   -------------------------------------------------------------------------- */
+.undrskin-3d-stage-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, rgba(241, 233, 223, 0.5) 0%, rgba(166, 199, 183, 0.8) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 16px 40px rgba(27, 23, 23, 0.06);
+}
+
+.undrskin-3d-stage {
+  position: relative;
+  width: 100%;
+  height: clamp(380px, 60vh, 650px);
+  display: block;
+}
+
+.undrskin-3d-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
+
+.undrskin-3d-canvas:active {
+  cursor: grabbing;
+}
+
+/* Exploded View Toggle Button (👁) */
+.undrskin-exploded-btn {
+  position: absolute;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.2rem;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--us-radius);
+  color: var(--us-dark);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transition: var(--us-transition);
+}
+
+.undrskin-exploded-btn:hover {
+  background: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
+
+.undrskin-exploded-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* --------------------------------------------------------------------------
+   Product Details Panel (Right Column)
+   -------------------------------------------------------------------------- */
+.undrskin-details-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.undrskin-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--us-wine);
+}
+
+.undrskin-product-title {
+  font-family: var(--us-font-display);
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--us-dark);
+  margin: 0;
+}
+
+.undrskin-price-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+}
+
+.undrskin-price {
+  font-family: var(--us-font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--us-dark);
+}
+
+.undrskin-compare-price {
+  font-size: 1.1rem;
+  text-decoration: line-through;
+  color: rgba(27, 23, 23, 0.45);
+}
+
+.undrskin-badge-save {
+  padding: 0.2rem 0.6rem;
+  background: var(--us-wine);
+  color: #FFFFFF;
+  font-size: 0.68rem;
+  font-weight: 600;
+  border-radius: var(--us-radius);
+  letter-spacing: 0.05em;
+}
+
+.undrskin-description {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: rgba(27, 23, 23, 0.78);
+}
+
+/* --------------------------------------------------------------------------
+   Variant Selectors (Colour & Size)
+   -------------------------------------------------------------------------- */
+.undrskin-option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.undrskin-option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.undrskin-color-swatches {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.undrskin-swatch-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 2px;
+  cursor: pointer;
+  background: transparent;
+  transition: var(--us-transition);
+  position: relative;
+}
+
+.undrskin-swatch-btn .swatch-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: block;
+}
+
+.undrskin-swatch-btn.is-active {
+  border-color: var(--us-dark);
+  transform: scale(1.1);
+}
+
+.undrskin-size-options {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.undrskin-size-btn {
+  min-width: 44px;
+  height: 40px;
+  padding: 0 0.8rem;
+  border: 1px solid rgba(27, 23, 23, 0.25);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--us-dark);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--us-transition);
+}
+
+.undrskin-size-btn:hover {
+  border-color: var(--us-dark);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.undrskin-size-btn.is-active {
+  background: var(--us-dark);
+  color: #FFFFFF;
+  border-color: var(--us-dark);
+}
+
+.undrskin-size-guide-trigger {
+  font-size: 0.78rem;
+  color: var(--us-wine);
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Add to Bag CTA Button
+   -------------------------------------------------------------------------- */
+.undrskin-add-to-bag-btn {
+  width: 100%;
+  padding: 1.1rem 2rem;
+  background: var(--us-dark);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--us-radius);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(27, 23, 23, 0.15);
+  transition: var(--us-transition);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.undrskin-add-to-bag-btn:hover {
+  background: var(--us-wine);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(126, 22, 38, 0.25);
+}
+
+.undrskin-add-to-bag-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* --------------------------------------------------------------------------
+   Exploded View Modal / Overlay
+   -------------------------------------------------------------------------- */
+.undrskin-exploded-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(14, 11, 11, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.undrskin-exploded-modal.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.undrskin-exploded-header {
+  padding: 1.25rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+.undrskin-exploded-title {
+  font-family: var(--us-font-display);
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.undrskin-exploded-close {
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  font-size: 1.8rem;
+  cursor: pointer;
+  padding: 0.2rem 0.6rem;
+  transition: var(--us-transition);
+}
+
+.undrskin-exploded-close:hover {
+  transform: rotate(90deg);
+  color: var(--us-rose);
+}
+
+.undrskin-exploded-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.undrskin-exploded-canvas-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+
+.undrskin-annotation-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.undrskin-annotation-card {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  padding: 0.8rem 1.2rem;
+  border-radius: 8px;
+  max-width: 240px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  transform: translateY(10px);
+  opacity: 0;
+  transition: all 0.5s ease;
+}
+
+.undrskin-exploded-modal.is-open .undrskin-annotation-card {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.undrskin-annotation-card h4 {
+  margin: 0 0 0.3rem 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--us-wine);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.undrskin-annotation-card p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--us-dark);
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Collapsible Accordions (Editorial Content)
+   -------------------------------------------------------------------------- */
+.undrskin-accordions-wrapper {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.undrskin-accordion-item {
+  border: 1px solid rgba(27, 23, 23, 0.15);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(241, 233, 223, 0.4);
+  transition: var(--us-transition);
+}
+
+.undrskin-accordion-header {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--us-dark);
+  cursor: pointer;
+}
+
+.undrskin-accordion-icon {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.undrskin-accordion-item.is-active .undrskin-accordion-icon {
+  transform: rotate(45deg);
+}
+
+.undrskin-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+  padding: 0 1.25rem;
+}
+
+.undrskin-accordion-item.is-active .undrskin-accordion-content {
+  max-height: 300px;
+  padding-bottom: 1rem;
+}
+
+.undrskin-accordion-content p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: rgba(27, 23, 23, 0.8);
+}
+
+/* --------------------------------------------------------------------------
+   Product Collection Grid Section (3 Columns Desktop / 2 Columns Mobile)
+   -------------------------------------------------------------------------- */
+.undrskin-collection-section {
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2.5rem);
+  background: var(--us-cream);
+  border-top: 1px solid rgba(27, 23, 23, 0.1);
+}
+
+.undrskin-collection-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.undrskin-collection-title {
+  font-family: var(--us-font-display);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  margin: 0 0 0.5rem 0;
+  color: var(--us-dark);
+}
+
+.undrskin-product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1rem, 2.5vw, 2rem);
+}
+
+@media (max-width: 900px) {
+  .undrskin-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.undrskin-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(27, 23, 23, 0.08);
+  transition: var(--us-transition);
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+}
+
+.undrskin-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+.undrskin-card-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: #F8F5F1;
+  overflow: hidden;
+}
+
+.undrskin-card-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.undrskin-card:hover .undrskin-card-image-wrapper img {
+  transform: scale(1.05);
+}
+
+.undrskin-card-details {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.undrskin-card-title {
+  font-family: var(--us-font-display);
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--us-dark);
+}
+
+.undrskin-card-price {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--us-wine);
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Dedicated Tweaks
+   -------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  .undrskin-3d-stage {
+    height: 380px;
+  }
+  
+  .undrskin-exploded-btn {
+    bottom: 0.85rem;
+    right: 0.85rem;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.72rem;
+  }
+  
+  .undrskin-annotation-card {
+    max-width: 180px;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .undrskin-annotation-card h4 {
+    font-size: 0.75rem;
+  }
+
+  .undrskin-annotation-card p {
+    font-size: 0.7rem;
+  }
+}
