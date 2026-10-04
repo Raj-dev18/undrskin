@@ -21,8 +21,33 @@ export function StorefrontExperience({ products }: StorefrontExperienceProps) {
   const featuredProduct = products[0];
 
   const sendCatalog = (event: SyntheticEvent<HTMLIFrameElement>) => {
-    event.currentTarget.contentWindow?.postMessage({ source: 'undrskin-catalog', cartCount: cart.totalQuantity, products: products.slice(0, 3).map((product) => ({ title: product.title, featuredImage: product.featuredImage?.url })), reviews: products[0]?.reviews ?? [] }, window.location.origin);
+    const frame = event.currentTarget.contentWindow;
+    frame?.postMessage({
+      source: 'undrskin-catalog',
+      cartCount: cart.totalQuantity,
+      products: products.slice(0, 4).map((product) => ({ title: product.title, featuredImage: product.featuredImage?.url })),
+      reviews: products[0]?.reviews ?? []
+    }, window.location.origin);
+
+    if (window.location.hash === '#reviews') {
+      [300, 800, 1500].forEach((delay) => {
+        setTimeout(() => {
+          frame?.postMessage({ source: 'undrskin-scroll', target: 'reviews' }, window.location.origin);
+        }, delay);
+      });
+    }
   };
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#reviews') {
+        const frame = iframeRef.current?.contentWindow;
+        frame?.postMessage({ source: 'undrskin-scroll', target: 'reviews' }, window.location.origin);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   useEffect(() => {
     const receiveMessage = (event: MessageEvent) => {
@@ -45,7 +70,14 @@ export function StorefrontExperience({ products }: StorefrontExperienceProps) {
 
   return (
     <div className="relative bg-[#A6C7B7] text-[#302824]">
-      <iframe ref={iframeRef} src="/undrskin-3d-demo.html" title="UndrSkin bamboo hipster shopping experience" onLoad={sendCatalog} className={`block w-full border-0 bg-[#A6C7B7] ${hasIframeContent ? '' : 'absolute inset-0 opacity-0 pointer-events-none'}`} style={{ height: iframeHeight, minHeight: '100dvh' }} />
+      <iframe
+        ref={iframeRef}
+        src="/undrskin-3d-demo.html"
+        title="UndrSkin bamboo hipster shopping experience"
+        onLoad={sendCatalog}
+        className={`block w-full border-0 bg-[#A6C7B7] ${hasIframeContent ? '' : 'absolute inset-0 opacity-0 pointer-events-none'}`}
+        style={{ height: iframeHeight, minHeight: '100dvh' }}
+      />
       <section className={`${hasIframeContent ? 'hidden' : ''} min-h-[calc(100dvh-5rem)] px-5 py-12 sm:px-10 lg:px-16 flex items-center`}>
         <div className="w-full max-w-7xl mx-auto grid lg:grid-cols-[1fr_minmax(22rem,34rem)_1fr] gap-10 lg:gap-16 items-center">
           <div className="space-y-6">

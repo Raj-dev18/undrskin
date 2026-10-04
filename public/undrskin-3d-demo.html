@@ -2436,5 +2436,19 @@ body{background:transparent;color:var(--skin)}
   }
 })();
 </script>
+<script>
+window.addEventListener('message', function (e) {
+  if (e.data && e.data.source === 'undrskin-scroll' && e.data.target) {
+    var el = document.getElementById(e.data.target);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+});
+if (window.location.hash === '#reviews') {
+  setTimeout(function() {
+    var revEl = document.getElementById('reviews');
+    if (revEl) revEl.scrollIntoView({ behavior: 'smooth' });
+  }, 800);
+}
+</script>
 </body>
 </html>
