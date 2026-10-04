@@ -4,8 +4,8 @@ import { CollectionsClient } from '@/components/product/collections-client';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'All Silhouettes — UNDRSKIN',
-  description: 'Explore the complete archive of minimal second-skin garments, slips, and underwire-free bralettes.',
+  title: 'Shop Bamboo Underwear — UNDRSKIN',
+  description: 'Explore bamboo underwear packs designed for breathable, comfortable everyday wear.',
 };
 
 export default async function CollectionsPage() {

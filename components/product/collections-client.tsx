@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Product, Collection } from '@/types/product';
 import { ProductGrid } from '@/components/product/product-grid';
@@ -18,9 +18,10 @@ export function CollectionsClient({
   initialProducts,
   collections,
   initialCategory = 'all',
-  collectionTitle = 'All Silhouettes',
-  collectionDescription = 'Explore our complete library of high-recovery second-skin foundation pieces, slips, and essentials.',
+  collectionTitle = 'Shop the collection',
+  collectionDescription = 'Explore breathable bamboo underwear packs made for everyday comfort.',
 }: CollectionsClientProps) {
+  const visibleCollections = collections.filter((collection) => !/home page|default example/i.test(collection.title));
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory);
   const [activeSort, setActiveSort] = useState<string>('featured');
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
@@ -49,7 +50,7 @@ export function CollectionsClient({
   }, [initialProducts, activeCategory, inStockOnly, activeSort]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    <div className="collections-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       {/* Breadcrumb */}
       <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-neutral-500 mb-6">
         <Link href="/" className="hover:text-white transition-colors">Home</Link>
@@ -75,7 +76,7 @@ export function CollectionsClient({
 
       {/* Filter and Sort Bar */}
       <CollectionFilter
-        categories={collections}
+        categories={visibleCollections}
         activeCategory={activeCategory}
         onSelectCategory={setActiveCategory}
         activeSort={activeSort}
@@ -89,7 +90,7 @@ export function CollectionsClient({
       <div className="mt-10">
         <ProductGrid
           products={filtered}
-          emptyMessage="No silhouettes found in this collection archive."
+          emptyMessage="No products found in this collection."
         />
       </div>
     </div>

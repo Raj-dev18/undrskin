@@ -36,7 +36,7 @@ export function CollectionFilter({
               : 'border-neutral-800 text-neutral-400 hover:text-white'
           }`}
         >
-          All Silhouettes ({productCount})
+          All products ({productCount})
         </button>
         {categories.map((col) => (
           <button
