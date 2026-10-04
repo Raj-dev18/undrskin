@@ -232,7 +232,7 @@
   border-color: var(--us-dark);
 }
 
-/* ---------------------------------- Modals: What's Inside Inspection Overlay */
+/* ------------------ Modals: What's Inside Technical Inspection Diagram Artwork Overlay */
 .undrskin-exploded-modal {
   position: fixed;
   inset: 0;
@@ -240,12 +240,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(27, 23, 23, 0.65);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(27, 23, 23, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   padding: 1.25rem;
 }
 
@@ -255,18 +255,19 @@
 }
 
 .undrskin-exploded-content {
-  background: var(--us-cream);
-  color: var(--us-dark);
+  background: #A6C7B7;
+  color: #1B1717;
   width: 100%;
-  max-width: 640px;
-  max-height: 85vh;
-  overflow-y: auto;
+  max-width: 920px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   border-radius: 20px;
-  padding: 1.75rem;
+  overflow: hidden;
   position: relative;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
   transform: scale(0.95);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .undrskin-exploded-modal.is-open .undrskin-exploded-content {
@@ -277,89 +278,69 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(27, 23, 23, 0.12);
-  padding-bottom: 1rem;
-  margin-bottom: 1.25rem;
+  padding: 1rem 1.5rem;
+  background: rgba(166, 199, 183, 0.95);
+  border-bottom: 1px solid rgba(27, 23, 23, 0.1);
+  z-index: 2;
 }
 
 .undrskin-exploded-title {
   font-family: var(--us-font-display);
-  font-size: 1.4rem;
-  margin: 0;
+  font-size: 1.25rem;
   font-weight: 400;
+  margin: 0;
+  color: #1B1717;
+  letter-spacing: 0.02em;
 }
 
 .undrskin-exploded-close {
-  background: transparent;
-  border: none;
-  font-size: 1.8rem;
-  line-height: 1;
-  color: var(--us-dark);
-  cursor: pointer;
-  padding: 0.25rem;
-}
-
-.undrskin-schematic-card {
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(27, 23, 23, 0.1);
-  border-radius: 12px;
-  padding: 1.25rem;
-  text-align: center;
-  margin-bottom: 1.25rem;
-}
-
-.undrskin-schematic-badge {
-  font-family: var(--us-font-display);
-  font-size: 1.2rem;
-  color: var(--us-dark);
-}
-
-.undrskin-schematic-sub {
-  font-size: 0.82rem;
-  color: rgba(27, 23, 23, 0.6);
-  margin: 0.25rem 0 0 0;
-}
-
-.undrskin-annotation-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.undrskin-annotation-card {
-  display: flex;
-  gap: 0.85rem;
-  align-items: flex-start;
-  background: #FFFFFF;
-  padding: 1rem;
-  border-radius: 12px;
-  border: 1px solid rgba(27, 23, 23, 0.08);
-}
-
-.undrskin-annotation-card h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.undrskin-annotation-card p {
-  margin: 0;
-  font-size: 0.82rem;
-  color: rgba(27, 23, 23, 0.7);
-  line-height: 1.45;
-}
-
-.undrskin-card-num {
-  width: 26px;
-  height: 26px;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(27, 23, 23, 0.15);
   border-radius: 50%;
-  background: var(--us-wine);
-  color: #FFFFFF;
-  font-size: 0.8rem;
-  font-weight: 700;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
-  flex-shrink: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #1B1717;
+  cursor: pointer;
+  transition: var(--us-transition);
+}
+
+.undrskin-exploded-close:hover {
+  background: #FFFFFF;
+  transform: scale(1.08);
+}
+
+.undrskin-exploded-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 1rem;
+  background: #A6C7B7;
+}
+
+.undrskin-diagram-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 75vh;
+}
+
+.undrskin-diagram-img {
+  max-width: 100%;
+  max-height: 75vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  display: block;
 }
 
 /* ---------------------------------------------------- Responsive Styles */
@@ -398,6 +379,36 @@
     right: 0.75rem;
     padding: 0.45rem 0.85rem;
     font-size: 0.7rem;
+  }
+
+  .undrskin-exploded-modal {
+    padding: 0.75rem;
+  }
+
+  .undrskin-exploded-content {
+    max-height: 92vh;
+    border-radius: 16px;
+  }
+
+  .undrskin-exploded-header {
+    padding: 0.85rem 1rem;
+  }
+
+  .undrskin-exploded-title {
+    font-size: 1.05rem;
+  }
+
+  .undrskin-exploded-body {
+    padding: 0.5rem;
+  }
+
+  .undrskin-diagram-wrapper {
+    max-height: 78vh;
+  }
+
+  .undrskin-diagram-img {
+    max-height: 78vh;
+    border-radius: 8px;
   }
 }
 
