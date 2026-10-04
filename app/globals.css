@@ -1,26 +1,168 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #A6C7B7;
+  --foreground: #302824;
+  --brand-sage: #A6C7B7;
+  --brand-cream: #F1E9DF;
+  --brand-rose: #B96F73;
+  --brand-wine: #7E1626;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-space-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+/* Keep legacy storefront routes in the live UndrSkin palette. */
+.bg-neutral-950 { background-color: var(--brand-sage); }
+.bg-neutral-900 { background-color: var(--brand-cream); }
+.bg-neutral-800 { background-color: #E3D7CB; }
+.bg-neutral-100 { background-color: var(--brand-cream); }
+.text-white, .text-neutral-100, .text-neutral-200, .text-neutral-300,
+.text-neutral-400, .text-neutral-500, .text-neutral-600, .text-neutral-700,
+.text-neutral-800, .text-neutral-900, .text-black { color: #302824; }
+.border-neutral-950, .border-neutral-900, .border-neutral-800,
+.border-neutral-700, .border-neutral-600 { border-color: rgba(48, 40, 36, .18); }
+[class~="hover:text-white"]:hover { color: var(--brand-wine); }
+[class~="hover:bg-white"]:hover { background-color: #EAD9C8; }
+
+/* Shared layout elements are visible across all routes */
+.home-3d-shell {
+  position: relative;
+  width: 100%;
+}
+
+/* Explicit contrast utilities for primary buttons */
+.btn-brand-primary,
+button.btn-brand-primary,
+a.btn-brand-primary {
+  background-color: #B96F73 !important;
+  color: #F1E9DF !important;
+}
+
+/* Product construction stage: isolated from global page and navigation state. */
+.exploded-product {
+  --part-transition: 780ms cubic-bezier(.22, 1, .36, 1);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(9rem, .8fr) minmax(18rem, 1.35fr) minmax(11rem, .85fr);
+  gap: clamp(1rem, 2vw, 2.5rem);
+  align-items: center;
+  min-height: clamp(29rem, 56vw, 40rem);
+  margin-bottom: 2rem;
+  overflow: clip;
+  border: 1px solid rgba(48, 40, 36, .15);
+  background: #a6c7b7;
+  color: #302824;
+}
+.exploded-product__intro { padding: clamp(1.2rem, 3vw, 3rem); align-self: start; }
+.exploded-product__eyebrow,
+.exploded-product__note strong { display:block; font: 500 .65rem/1.3 var(--font-geist-mono, monospace); letter-spacing: .2em; }
+.exploded-product__intro h2 { margin: .9rem 0; font: 300 clamp(2.2rem, 4vw, 4.5rem)/.9 Georgia, serif; letter-spacing: -.05em; }
+.exploded-product__intro h2 em { font-weight: 300; }
+.exploded-product__intro p { max-width: 15rem; color: rgba(48,40,36,.7); font-size: .85rem; line-height: 1.55; }
+.exploded-product__stage { position:relative; width:min(100%, 31rem); aspect-ratio: 1 / 1.18; justify-self:center; }
+.exploded-product__part { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; filter: drop-shadow(0 24px 28px rgba(48,40,36,.15)); transition: transform var(--part-transition), opacity var(--part-transition); will-change: transform, opacity; }
+.exploded-product__part--body { clip-path: inset(24% 13% 19% 13%); }
+.exploded-product__part--waistband { clip-path: inset(11% 11% 66% 11%); }
+.exploded-product__part--gusset { clip-path: inset(61% 32% 10% 32%); }
+.exploded-product__part--legs { clip-path: polygon(8% 52%, 34% 49%, 40% 92%, 8% 88%, 8% 52%, 92% 52%, 66% 49%, 60% 92%, 92% 88%); }
+.exploded-product[data-phase='1'] .exploded-product__part--waistband { transform: translate3d(0, -1.4rem, 0); }
+.exploded-product[data-phase='1'] .exploded-product__part--gusset { transform: translate3d(0, 1.25rem, 0); }
+.exploded-product[data-phase='2'] .exploded-product__part--waistband { transform: translate3d(0, -3.1rem, 0); }
+.exploded-product[data-phase='2'] .exploded-product__part--body { transform: scale(.94); }
+.exploded-product[data-phase='2'] .exploded-product__part--gusset { transform: translate3d(0, 3rem, 0); }
+.exploded-product[data-phase='2'] .exploded-product__part--legs { transform: translate3d(0, .8rem, 0) scale(1.04); }
+.exploded-product[data-phase='3'] .exploded-product__part--waistband { transform: translate3d(0, -4.4rem, 0); }
+.exploded-product[data-phase='3'] .exploded-product__part--body { transform: scale(.88); }
+.exploded-product[data-phase='3'] .exploded-product__part--gusset { transform: translate3d(0, 4.4rem, 0); }
+.exploded-product[data-phase='3'] .exploded-product__part--legs { transform: translate3d(0, 1.3rem, 0) scale(1.1); }
+.exploded-product__notes { display:grid; gap:1.1rem; padding: clamp(1.2rem, 3vw, 3rem) clamp(1.2rem, 3vw, 2.6rem) clamp(1.2rem, 3vw, 3rem) 0; }
+.exploded-product__note { display:flex; align-items:flex-start; gap:.75rem; opacity:.28; transform:translateX(10px); transition: opacity var(--part-transition), transform var(--part-transition); }
+.exploded-product__note span:not(.exploded-product__line) { display:block; margin-top:.3rem; color:rgba(48,40,36,.68); font-size:.75rem; line-height:1.45; }
+.exploded-product__line { width:2.5rem; height:1px; margin-top:.4rem; background:rgba(48,40,36,.55); flex:none; }
+.exploded-product[data-phase='1'] [data-note='0'],
+.exploded-product[data-phase='2'] [data-note='0'],
+.exploded-product[data-phase='2'] [data-note='1'],
+.exploded-product[data-phase='3'] .exploded-product__note { opacity:1; transform:none; }
+
+/* Keep the construction study contained on phones. The clipped source
+   image used for each exploded layer can otherwise expose neighbouring
+   slices and make the garment look duplicated over the copy. */
+@media (max-width: 640px) {
+  .exploded-product {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    overflow: hidden;
+  }
+  .exploded-product__intro { order: 1; }
+  .exploded-product__stage {
+    order: 2;
+    width: min(100%, 20rem);
+    aspect-ratio: 1 / 1;
+    margin-inline: auto;
+    overflow: hidden;
+  }
+  .exploded-product__part--waistband { opacity: 0; }
+  .exploded-product__part--body { transform: none !important; opacity: 1; }
+  .exploded-product__part--gusset,
+  .exploded-product__part--legs {
+    opacity: .22;
+    transform: translate3d(0, 1.5rem, 0) scale(.94) !important;
+  }
+  .exploded-product__notes {
+    order: 3;
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+}
+@media (max-width: 900px) {
+  .exploded-product { grid-template-columns:1fr; min-height:0; padding:1.25rem; gap:.5rem; overflow:hidden; }
+  .exploded-product__intro { padding:0; }
+  .exploded-product__intro h2 { font-size:clamp(2.3rem, 12vw, 3.5rem); }
+  .exploded-product__intro p { max-width:20rem; }
+  .exploded-product__stage { width:min(100%, 22rem); }
+  .exploded-product__notes { grid-template-columns:1fr 1fr; padding:0; gap:.8rem; }
+  .exploded-product__line { width:1.4rem; }
+  .exploded-product[data-phase='2'] .exploded-product__part--waistband { transform:translate3d(0,-1.8rem,0); }
+  .exploded-product[data-phase='2'] .exploded-product__part--gusset { transform:translate3d(0,1.8rem,0); }
+  .exploded-product[data-phase='3'] .exploded-product__part--waistband { transform:translate3d(0,-2.5rem,0); }
+  .exploded-product[data-phase='3'] .exploded-product__part--gusset { transform:translate3d(0,2.5rem,0); }
+}
+
+.product-details-panel {
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  border: 1px solid rgba(48, 40, 36, .16);
+  background: rgba(241, 233, 223, .72);
+  color: #302824;
+}
+.product-details-panel .text-white { color: #302824 !important; }
+.product-details-panel .text-neutral-300,
+.product-details-panel .text-neutral-400,
+.product-details-panel .text-neutral-500 { color: rgba(48, 40, 36, .68) !important; }
+.product-details-panel .border-neutral-900,
+.product-details-panel .border-neutral-800,
+.product-details-panel .border-neutral-700 { border-color: rgba(48, 40, 36, .18) !important; }
+.product-details-panel .bg-neutral-950 { background: rgba(241, 233, 223, .65) !important; }
+.product-details-panel button.bg-white { background: #b96f73 !important; color: #fff !important; }
+.product-details-panel button.bg-white:hover { background: #9e5b60 !important; }
+.btn-brand-primary span {
+  color: #F1E9DF !important;
+}
+.btn-brand-primary:hover {
+  background-color: #7E1626 !important;
+  color: #FFFFFF !important;
+}
+.btn-brand-primary:hover span {
+  color: #FFFFFF !important;
 }
