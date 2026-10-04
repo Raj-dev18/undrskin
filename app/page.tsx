@@ -1,6 +1,10 @@
-import { redirect } from 'next/navigation';
+import { getProducts } from '@/lib/shopify';
+import { StorefrontExperience } from '@/components/home/storefront-experience';
 
-/** The original UndrSkin demo is the canonical home experience. */
-export default function HomePage() {
-  redirect('/undrskin-3d-demo.html');
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const products = await getProducts({});
+
+  return <StorefrontExperience products={products} />;
 }
