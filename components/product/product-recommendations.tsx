@@ -22,7 +22,7 @@ export function ProductRecommendations({
           Complete the Ensemble
         </span>
         <h3 className="text-2xl font-light text-white tracking-tight uppercase mt-1">
-          Complimentary Silhouettes
+                You may also like
         </h3>
       </div>
       <ProductGrid products={filtered} />

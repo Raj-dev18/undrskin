@@ -10,7 +10,7 @@ interface ProductDetailsProps {
 }
 
 export function ProductDetails({ product, onVariantChange }: ProductDetailsProps) {
-  const { addItem, openCart } = useCart();
+  const { addItem, openCart, openCheckout } = useCart();
 
   // Filter out Shopify internal "Default Title" options for single-variant products
   const visibleOptions = useMemo(() => {
@@ -80,7 +80,7 @@ export function ProductDetails({ product, onVariantChange }: ProductDetailsProps
     if (!selectedVariant || !selectedVariant.availableForSale || isCheckingOut) return;
     setIsCheckingOut(true);
     addItem(product, selectedVariant, quantity);
-    openCart();
+    openCheckout();
     setIsCheckingOut(false);
   };
 
@@ -304,14 +304,14 @@ export function ProductDetails({ product, onVariantChange }: ProductDetailsProps
             type="button"
             onClick={handleBuyNow}
             disabled={isCheckingOut}
-            className="w-full py-3.5 border border-neutral-700 hover:border-white text-white text-xs uppercase tracking-widest font-medium transition-colors"
+            className="w-full py-3.5 border border-neutral-700 hover:border-white text-white text-xs uppercase tracking-widest font-medium transition-colors cursor-pointer"
           >
-            {isCheckingOut ? 'Preparing Bag...' : 'Proceed to Bag / Buy Now'}
+            {isCheckingOut ? 'Preparing Checkout...' : 'Buy Now — Instant Checkout'}
           </button>
         )}
 
         <p className="text-[10px] text-center uppercase tracking-widest text-neutral-400 font-mono">
-          Free Express Shipping over $150 • 30-Day Discreet Returns
+          Shipping and return details are shown at checkout.
         </p>
       </div>
 
@@ -325,7 +325,7 @@ export function ProductDetails({ product, onVariantChange }: ProductDetailsProps
             }
             className="w-full py-4 flex items-center justify-between text-xs uppercase tracking-widest text-white text-left"
           >
-            <span>Silhouette & Details</span>
+            <span>Product details</span>
             <span className="font-mono text-neutral-500">
               {activeAccordion === 'details' ? '−' : '+'}
             </span>

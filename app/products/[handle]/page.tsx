@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${product.title} — UNDRSKIN`,
-    description: product.description.slice(0, 160) || 'Architectural luxury second-skin piece by UNDRSKIN.',
+    description: product.description.slice(0, 160) || 'A bamboo underwear essential by UNDRSKIN.',
     openGraph: {
       title: `${product.title} — UNDRSKIN`,
       description: product.description.slice(0, 160),
@@ -112,7 +112,7 @@ export default async function ProductPage({ params }: Props) {
           </Link>
           <span>/</span>
           <Link href="/collections" className="hover:text-white transition-colors">
-            Silhouettes
+            Shop
           </Link>
           <span>/</span>
           <span className="text-white truncate">{product.title}</span>
@@ -129,12 +129,13 @@ export default async function ProductPage({ params }: Props) {
           productTitle={product.title}
           widgetHtml={judgeMeData.widgetHtml}
           shopDomain={process.env.JUDGEME_SHOP_DOMAIN || process.env.SHOPIFY_STORE_DOMAIN || 'f7gwna-cx.myshopify.com'}
+          publicToken={process.env.JUDGEME_PUBLIC_TOKEN}
         />
 
         {/* Fitting & Care FAQ Preview */}
         <ProductFaqPreview faqs={faqs} />
 
-        {/* Complementary Silhouettes */}
+        {/* Related products */}
         <ProductRecommendations products={allProducts} currentProductId={product.id} />
       </div>
     </>
