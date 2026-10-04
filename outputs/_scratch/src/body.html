@@ -1,0 +1,442 @@
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<!-- icon sprite: real care symbols, used as the page's section device -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <symbol id="ic-fibre" viewBox="0 0 24 24"><path d="M12 21c0-7 3-12 9-15-1 8-4 12-9 15Z"/><path d="M12 21C9 16 6 13 3 12c4-1 7 1 9 4"/></symbol>
+    <symbol id="ic-air" viewBox="0 0 24 24"><path d="M3 8h11a3 3 0 1 0-3-3"/><path d="M3 13h15a3 3 0 1 1-3 3"/><path d="M3 18h8"/></symbol>
+    <symbol id="ic-wash" viewBox="0 0 24 24"><path d="M3 8h18l-1.4 11a2 2 0 0 1-2 1.8H6.4a2 2 0 0 1-2-1.8L3 8Z"/><path d="M3 8l2.6-4h12.8L21 8"/><path d="M7 14c1.6-1.4 3.4-1.4 5 0s3.4 1.4 5 0"/></symbol>
+    <symbol id="ic-nobleach" viewBox="0 0 24 24"><path d="M12 3 21 20H3L12 3Z"/><path d="M8 11l8 6M16 11l-8 6"/></symbol>
+    <symbol id="ic-dry" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"/><circle cx="12" cy="12" r="5"/><path d="M10.5 12h3"/></symbol>
+    <symbol id="ic-iron" viewBox="0 0 24 24"><path d="M3 16h14a4 4 0 0 0 4-4V8H8L3 16Z"/><path d="M6 19h13"/></symbol>
+    <symbol id="ic-stretch" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l3 3M16 8l-3 3M8 16l3-3M16 16l-3-3"/></symbol>
+    <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6l7-3Z"/><path d="M9 12.5l2 2 4-4.5"/></symbol>
+    <linearGradient id="halfgrad" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="50%" stop-color="#B96F73"/><stop offset="50%" stop-color="#B96F73" stop-opacity=".22"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- ============================== nav ============================== -->
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="UndrSkin home">
+    <span class="brand__mark">Undrskin</span>
+    <span class="brand__sub">skin first intimates</span>
+  </a>
+  <nav class="nav__links" aria-label="Sections">
+    <a href="#fabric">The fabric</a>
+    <a href="#fit">The fit</a>
+    <a href="#buy">Buy</a>
+    <a href="#trios">The trios</a>
+    <a href="#reviews">Reviews</a>
+  </nav>
+  <button class="bag" id="bagBtn" aria-label="Open bag">Bag <span class="bag__n num" id="bagN">0</span></button>
+</header>
+
+<main id="top">
+
+<!-- ============================== film ============================== -->
+<section class="film" id="film">
+  <div class="stage" id="stage">
+    <div class="stage__shaft" aria-hidden="true"></div>
+    <canvas class="stage__canvas" id="stageCanvas" aria-hidden="true"></canvas>
+    <img class="stage__fallback" id="stageFallback" src="{{A:g_rose}}" alt="UndrSkin bamboo hipster panty in Dusty Rose">
+    <div class="hero">
+      <div class="hero__inner">
+        <div class="hero__eyebrow" data-reveal>
+          <span class="tag tag--bamboo"><svg aria-hidden="true"><use href="#ic-fibre"/></svg>95% bamboo viscose · 5% spandex</span>
+          <span class="tag">Everyday trio · pack of 3</span>
+        </div>
+        <h1 class="display hero__t">
+          <span class="ln"><span>The bamboo</span></span>
+          <span class="ln"><span>hipster</span></span>
+        </h1>
+        <div class="hero__meta">
+          <span class="util">Made to disappear on skin</span>
+          <span class="hero__price num">₹999 <span class="util dim">· ₹333 a piece</span></span>
+          <span class="scrollcue util">Scroll<span class="scrollcue__bar"></span>the fabric</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapters">
+    <article class="chapter" data-chapter="0">
+      <div class="chapter__box">
+        <span class="chapter__n">Fibre</span>
+        <h2 class="chapter__t">Spun from grass,<br><em>not petroleum.</em></h2>
+        <p>Bamboo viscose is a cellulose fibre — long, round, and smoother than cotton at the point where fabric meets skin. It is the whole reason this pair goes quiet the moment you put it on.</p>
+        <div class="chapter__spec">
+          <div>Fibre <b>95% bamboo viscose</b></div>
+          <div>Stretch <b>5% spandex</b></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="chapter" data-chapter="1">
+      <div class="chapter__box">
+        <span class="chapter__n">Air</span>
+        <h2 class="chapter__t">It breathes<br><em>before you do.</em></h2>
+        <p>The weave moves damp air out instead of holding it in, and an anti-microbial finish keeps the pair fresh from morning to night — through commutes, desks, and the walk back home.</p>
+        <div class="chapter__spec">
+          <div>Finish <b>Anti-microbial</b></div>
+          <div>Moisture <b>Wicking</b></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="chapter" data-chapter="2">
+      <div class="chapter__box">
+        <span class="chapter__n">Fit</span>
+        <h2 class="chapter__t">Nothing rides up.<br><em>Nothing digs in.</em></h2>
+        <p>A mid-rise hipster cut with full back coverage and a soft self-fabric waistband. Four-way stretch means it follows you instead of correcting you.</p>
+        <div class="chapter__spec">
+          <div>Coverage <b>Full seat</b></div>
+          <div>Stretch <b>Four-way</b></div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ============================== ticker ============================== -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker__row" id="tickerRow"></div>
+</div>
+
+<!-- ============================== fabric ============================== -->
+<section class="sec" id="fabric">
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__t" data-reveal>Skin first,<br>then everything else.</h2>
+      <p class="sechead__aside" data-reveal data-d="1">Three things do the work in this pair: the fibre, the finish, and five percent of spandex. Everything else is restraint.</p>
+    </header>
+
+    <div class="claims">
+      <article class="claim" data-reveal>
+        <svg class="claim__i" aria-hidden="true"><use href="#ic-air"/></svg>
+        <h3 class="claim__t">Breathes both ways</h3>
+        <p>Moisture-wicking bamboo pulls damp air away from skin, so the fabric stays dry-feeling in Indian summers.</p>
+        <span class="util faint">Moisture-wicking</span>
+      </article>
+      <article class="claim" data-reveal data-d="1">
+        <svg class="claim__i" aria-hidden="true"><use href="#ic-shield"/></svg>
+        <h3 class="claim__t">Stays fresh longer</h3>
+        <p>An anti-microbial finish keeps odour down between washes — the difference you notice on a long day, not in a photo.</p>
+        <span class="util faint">Anti-microbial</span>
+      </article>
+      <article class="claim" data-reveal data-d="2">
+        <svg class="claim__i" aria-hidden="true"><use href="#ic-stretch"/></svg>
+        <h3 class="claim__t">Moves four ways</h3>
+        <p>Five percent spandex gives the pair stretch across and along the body, so it returns to shape instead of bagging out.</p>
+        <span class="util faint">Four-way stretch</span>
+      </article>
+    </div>
+
+    <figure class="macro" data-reveal>
+      <img src="{{A:macro_rose}}" alt="Close-up of the bamboo jersey and bound leg opening in Dusty Rose">
+      <figcaption>
+        <span class="tag">Dusty rose · at close range</span>
+        <span class="util faint">Bound leg opening · self-fabric waistband</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<hr class="rule">
+
+<!-- ============================== fit ============================== -->
+<section class="sec" id="fit">
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__t" data-reveal>The fit,<br>in two frames.</h2>
+      <p class="sechead__aside" data-reveal data-d="1">Full seat coverage and four-way stretch, shot from the two angles that actually decide whether you keep wearing a pair.</p>
+    </header>
+
+    <div class="fit">
+      <div class="stills" data-reveal>
+        <figure class="still still--tall">
+          <img src="{{A:fit_stretch}}" alt="Model wearing the Dusty Rose hipster, side view showing four-way stretch">
+          <figcaption class="still__cap">Four-way stretch</figcaption>
+        </figure>
+        <figure class="still still--short">
+          <img src="{{A:fit_back}}" alt="Back view of the Maroon hipster showing full seat coverage">
+          <figcaption class="still__cap">Full coverage · no ride-up</figcaption>
+        </figure>
+      </div>
+
+      <div class="fitnotes" data-reveal data-d="1">
+        <h3 class="fitnotes__t">Sits at the hip.<br>Stays there.</h3>
+        <ul class="fitlist">
+          <li><span class="k">Rise</span><span class="v"><b>Mid-rise hipster.</b> Sits below the navel with a wide self-fabric waistband — no elastic edge to dig in.</span></li>
+          <li><span class="k">Seat</span><span class="v"><b>Full back coverage.</b> The cut holds through the day instead of creeping up by afternoon.</span></li>
+          <li><span class="k">Finish</span><span class="v"><b>Flat bound legs.</b> Leg openings are bound and lie flat, so nothing prints through clothes.</span></li>
+          <li><span class="k">Gusset</span><span class="v"><b>Bamboo panel.</b> Breathable where it matters most, in the same fibre as the body.</span></li>
+          <li><span class="k">Wear</span><span class="v"><b>Everyday.</b> Wireless comfort, morning to night — the pair you reach for without thinking.</span></li>
+        </ul>
+        <a class="cta cta--ghost" href="#buy"><span>Choose your shade</span><span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== configurator ============================== -->
+<section class="sec sec--raised" id="buy">
+  <div class="wrap">
+    <div class="buy">
+      <div class="viewer" id="viewer" data-reveal>
+        <canvas id="viewerCanvas" aria-hidden="true"></canvas>
+        <img class="viewer__fallback" id="viewerFallback" src="{{A:g_rose}}" alt="UndrSkin bamboo hipster panty">
+        <span class="viewer__badge">Live 3D</span>
+        <span class="viewer__hint" id="viewerHint">Drag to turn · pick a shade to dye</span>
+      </div>
+
+      <div class="pd" data-reveal data-d="1">
+        <span class="tag tag--bamboo"><svg aria-hidden="true"><use href="#ic-fibre"/></svg>95% bamboo viscose</span>
+        <h2 class="pd__t">UndrSkin Bamboo Hipster</h2>
+        <p class="pd__sub">Luxury bamboo hipster panty — soft, breathable, skin-friendly innerwear with an anti-microbial, moisture-wicking finish. Sold as a pack of three solids.</p>
+
+        <div class="pd__rate">
+          <span class="stars" data-stars="4.3" aria-hidden="true"></span>
+          <span class="num"><b>4.3</b> out of 5</span>
+          <span class="faint">·</span>
+          <a href="#reviews">12 ratings across the collection</a>
+        </div>
+
+        <div class="pd__price">
+          <span class="amt num" id="priceAmt">₹999</span>
+          <span class="per num">₹333 a piece · pack of 3</span>
+        </div>
+
+        <div class="pd__row">
+          <span class="lbl">Colourway <b id="cwName">Dusty Rose</b></span>
+          <div class="dots" id="dots" role="group" aria-label="Choose a colourway">
+            <button class="dot is-on" data-c="0" data-name="Dusty Rose" aria-label="Dusty Rose"><i style="background:#B96F73"></i></button>
+            <button class="dot" data-c="1" data-name="Maroon" aria-label="Maroon"><i style="background:#7E1626"></i></button>
+            <button class="dot" data-c="2" data-name="Black" aria-label="Black"><i style="background:#1B1717"></i></button>
+            <button class="dot" data-c="3" data-name="Beige" aria-label="Beige"><i style="background:#E2BC96"></i></button>
+          </div>
+        </div>
+
+        <div class="pd__row">
+          <span class="lbl">Size <b><a href="#size">Size guide</a></b></span>
+          <div class="sizes" id="sizes" role="group" aria-label="Choose a size">
+            <button class="size" data-s="S">S</button>
+            <button class="size is-on" data-s="M">M</button>
+            <button class="size" data-s="L">L</button>
+            <button class="size" data-s="XL">XL</button>
+            <button class="size is-off" data-s="XXL" disabled aria-disabled="true">XXL</button>
+          </div>
+        </div>
+
+        <button class="cta" id="addBtn"><span>Add to bag — ₹999</span><span aria-hidden="true">+</span></button>
+
+        <div class="pd__ship">
+          <span><b>Free delivery</b> — get it by Saturday, 29 August.</span>
+          <span>Sold on Amazon.in · <b>4.3</b> average from 12 ratings.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== trios ============================== -->
+<section class="sec" id="trios">
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__t" data-reveal>Four trios.<br>Twelve pairs a year.</h2>
+      <p class="sechead__aside" data-reveal data-d="1">Every pack holds three solids at ₹999 — ₹333 a piece. Prices, ratings and delivery dates here mirror the live listings.</p>
+    </header>
+
+    <div class="trios" id="triosGrid"></div>
+  </div>
+</section>
+
+<!-- ============================== size / care (light) ============================== -->
+<section class="sec sec--light" id="size">
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__t" data-reveal>Get the size right<br>the first time.</h2>
+      <p class="sechead__aside" data-reveal data-d="1">Measure at the narrowest part of the waist and the fullest part of the hip. Between two sizes, take the larger — bamboo relaxes slightly with wear.</p>
+    </header>
+
+    <div class="studio">
+      <figure class="studio__img" data-reveal>
+        <img src="{{A:trio_white}}" alt="Three models wearing the Shades Trio in Dusty Rose, Beige and Maroon">
+        <figcaption class="studio__cap">Shades trio · sizes S–XXL</figcaption>
+      </figure>
+
+      <div data-reveal data-d="1">
+        <table class="chart">
+          <caption>Size chart · inches</caption>
+          <thead><tr><th>Size</th><th>Waist</th><th>Hip</th><th>Also called</th></tr></thead>
+          <tbody>
+            <tr><td>S</td><td class="num">26–28</td><td class="num">34–36</td><td>Small</td></tr>
+            <tr><td>M</td><td class="num">28–30</td><td class="num">36–38</td><td>Medium</td></tr>
+            <tr><td>L</td><td class="num">30–32</td><td class="num">38–40</td><td>Large</td></tr>
+            <tr><td>XL</td><td class="num">32–34</td><td class="num">40–42</td><td>Extra large</td></tr>
+            <tr><td>XXL</td><td class="num">34–36</td><td class="num">42–44</td><td>Double XL</td></tr>
+          </tbody>
+        </table>
+
+        <dl class="specs">
+          <div><dt>Fibre</dt><dd>95% bamboo viscose, 5% spandex</dd></div>
+          <div><dt>Finish</dt><dd>Anti-microbial, moisture-wicking</dd></div>
+          <div><dt>Cut</dt><dd>Mid-rise hipster, full seat coverage</dd></div>
+          <div><dt>Pack</dt><dd>Three solids · ₹999 (₹333 a piece)</dd></div>
+        </dl>
+
+        <div class="care">
+          <span class="tag tag--light"><svg aria-hidden="true"><use href="#ic-wash"/></svg>Machine wash cold</span>
+          <span class="tag tag--light"><svg aria-hidden="true"><use href="#ic-nobleach"/></svg>Do not bleach</span>
+          <span class="tag tag--light"><svg aria-hidden="true"><use href="#ic-dry"/></svg>Tumble dry low</span>
+          <span class="tag tag--light"><svg aria-hidden="true"><use href="#ic-iron"/></svg>Warm iron if needed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== reviews ============================== -->
+<section class="sec" id="reviews">
+  <div class="wrap">
+    <header class="sechead">
+      <h2 class="sechead__t" data-reveal>What twelve<br>buyers say.</h2>
+      <p class="sechead__aside" data-reveal data-d="1">The star averages and counts are the live Amazon numbers for the four listings. Written reviews are placeholder copy for this demo — swap in the real ones before launch.</p>
+    </header>
+
+    <div class="rev">
+      <div class="score" data-reveal>
+        <div class="score__n num">4.3<sup>/5</sup></div>
+        <span class="stars" data-stars="4.3" aria-hidden="true"></span>
+        <span class="util faint">12 ratings · 4 listings</span>
+        <div class="bars" id="bars"></div>
+        <p class="util faint">Everyday Trio 2 — 5.0 · Shades Trio — 4.1<br>Shades Trio 2 — 4.5 · Everyday Core — new</p>
+      </div>
+
+      <div class="revlist" id="revList"></div>
+    </div>
+  </div>
+</section>
+
+<div class="quotes" aria-hidden="true"><div class="quotes__row" id="quotesRow"></div></div>
+
+<!-- ============================== closing ============================== -->
+<section class="close">
+  <span class="tag tag--bamboo" data-reveal><svg aria-hidden="true"><use href="#ic-fibre"/></svg>Everyday trio · pack of 3 · ₹999</span>
+  <h2 class="display close__t" data-reveal data-d="1">Own the trio.<br><em>Forget you're wearing it.</em></h2>
+  <div class="close__actions" data-reveal data-d="2">
+    <button class="cta" id="addBtn2"><span>Add to bag — ₹999</span><span aria-hidden="true">+</span></button>
+    <a class="cta cta--ghost" href="https://www.amazon.in/stores/UndrSkin/page/061AD50D-1279-42A1-AB1F-50E480F55AAB" target="_blank" rel="noopener"><span>View the Amazon store</span><span aria-hidden="true">↗</span></a>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================== footer ============================== -->
+<footer>
+  <div class="label">
+    <div class="label__top">
+      <span class="brand__mark">Undrskin</span>
+      <span class="util faint">Skin first intimates · Made in India</span>
+      <span class="util faint">95% bamboo viscose · 5% spandex</span>
+    </div>
+    <div class="label__grid">
+      <div><h4>Shop</h4><ul>
+        <li><a href="#trios">The four trios</a></li>
+        <li><a href="#buy">Bamboo hipster</a></li>
+        <li><a href="#size">Size guide</a></li>
+        <li><a href="#reviews">Reviews</a></li>
+      </ul></div>
+      <div><h4>Fabric</h4><ul>
+        <li><a href="#fabric">Why bamboo</a></li>
+        <li><a href="#fabric">Anti-microbial finish</a></li>
+        <li><a href="#size">Care instructions</a></li>
+        <li><a href="#fit">Fit notes</a></li>
+      </ul></div>
+      <div><h4>Help</h4><ul>
+        <li><a href="#size">Find your size</a></li>
+        <li><a href="#buy">Delivery</a></li>
+        <li><a href="#buy">Returns</a></li>
+        <li><a href="#top">Contact</a></li>
+      </ul></div>
+      <div><h4>Elsewhere</h4><ul>
+        <li><a href="https://www.amazon.in/stores/UndrSkin/page/061AD50D-1279-42A1-AB1F-50E480F55AAB" target="_blank" rel="noopener">Amazon store ↗</a></li>
+        <li><a href="#top">Instagram</a></li>
+        <li><a href="#top">Stockists</a></li>
+      </ul></div>
+    </div>
+    <div class="label__care">
+      <span class="tag"><svg aria-hidden="true"><use href="#ic-wash"/></svg>Wash cold</span>
+      <span class="tag"><svg aria-hidden="true"><use href="#ic-nobleach"/></svg>No bleach</span>
+      <span class="tag"><svg aria-hidden="true"><use href="#ic-dry"/></svg>Dry low</span>
+      <span class="tag"><svg aria-hidden="true"><use href="#ic-iron"/></svg>Warm iron</span>
+      <span class="tag"><svg aria-hidden="true"><use href="#ic-stretch"/></svg>Wash darks apart</span>
+    </div>
+  </div>
+
+  <details class="notes">
+    <summary>Demo notes — what's real, what's placeholder</summary>
+    <div class="notes__body">
+      <div>
+        <h5>Real, from the listings</h5>
+        <ul>
+          <li>Product photography and colourways</li>
+          <li>₹999 a pack · ₹333 a piece</li>
+          <li>Star averages: 5.0, 4.1, 4.5 and one new listing</li>
+          <li>12 ratings total · 4.3 average</li>
+          <li>Delivery dates shown per trio</li>
+          <li>Fabric claims: 95% bamboo, anti-microbial, moisture-wicking, four-way stretch, full coverage</li>
+        </ul>
+      </div>
+      <div>
+        <h5>Placeholder for now</h5>
+        <ul>
+          <li>Written reviews, reviewer names and cities</li>
+          <li>Size chart measurements</li>
+          <li>Fit and care wording</li>
+          <li>Stock status (XXL shown sold out)</li>
+          <li>Bag and checkout are front-end only</li>
+        </ul>
+      </div>
+      <div>
+        <h5>For the production build</h5>
+        <ul>
+          <li>Shopify or WooCommerce catalogue + cart</li>
+          <li>Razorpay or Amazon Pay checkout</li>
+          <li>Reviews pulled from the marketplace or Judge.me</li>
+          <li>Photogrammetry scan to replace the fabric plane with a true 3D garment</li>
+          <li>Hindi / regional copy toggle</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <div class="foot__end">
+    <span>© 2026 UndrSkin · demo build</span>
+    <span>Front-end demo · no checkout wired</span>
+    <a href="https://www.amazon.in/stores/UndrSkin/page/061AD50D-1279-42A1-AB1F-50E480F55AAB" target="_blank" rel="noopener">Buy on Amazon.in ↗</a>
+  </div>
+</footer>
+
+<!-- ============================== bag drawer ============================== -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Your bag" aria-hidden="true">
+  <div class="drawer__head">
+    <span class="util">Your bag</span>
+    <button class="close-x" id="drawerX" aria-label="Close bag">✕</button>
+  </div>
+  <div class="drawer__body" id="drawerBody">
+    <p class="drawer__empty">Nothing in the bag yet. Pick a shade and a size.</p>
+  </div>
+  <div class="drawer__foot">
+    <div class="drawer__tot"><span class="util">Total</span><b class="num" id="drawerTot">₹0</b></div>
+    <button class="cta" id="checkoutBtn"><span>Checkout</span><span aria-hidden="true">→</span></button>
+    <span class="util faint">Demo only — no payment is taken.</span>
+  </div>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
