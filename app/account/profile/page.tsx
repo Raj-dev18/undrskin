@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { BackButton } from '@/components/ui/back-button';
 
 export default function ProfilePage() {
   const [formData, setFormData] = useState({
@@ -57,6 +58,9 @@ export default function ProfilePage() {
   return (
     <div className="min-h-[75vh] bg-[#A6C7B7] text-[#302824] py-12 sm:py-20 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto bg-[#F1E9DF] p-8 sm:p-12 rounded-2xl shadow-xl border border-[#302824]/15">
+        <div className="mb-6 pb-4 border-b border-[#302824]/15 flex items-center justify-between">
+          <BackButton label="Back to Home" fallbackUrl="/" className="text-[#302824] hover:text-[#7E1626]" />
+        </div>
         <div className="mb-8 pb-6 border-b border-[#302824]/15">
           <span className="text-[10px] uppercase tracking-[0.3em] text-[#302824]/60 font-mono block mb-2">
             Client Profile &amp; Address

@@ -35,7 +35,7 @@ export function ProductDetails({ product, onVariantChange }: ProductDetailsProps
   });
 
   const [quantity, setQuantity] = useState(1);
-  const [activeAccordion, setActiveAccordion] = useState<string | null>('details');
+  const [activeAccordion, setActiveAccordion] = useState<string | null>(null);
   const [addedAnimation, setAddedAnimation] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
@@ -323,18 +323,23 @@ export function ProductDetails({ product, onVariantChange }: ProductDetailsProps
             onClick={() =>
               setActiveAccordion(activeAccordion === 'details' ? null : 'details')
             }
-            className="w-full py-4 flex items-center justify-between text-xs uppercase tracking-widest text-white text-left"
+            className="w-full py-4 flex items-center justify-between text-xs uppercase tracking-widest text-white text-left group cursor-pointer"
           >
-            <span>Product details</span>
-            <span className="font-mono text-neutral-500">
-              {activeAccordion === 'details' ? '−' : '+'}
+            <span className="flex items-center gap-2">
+              <span>More Details</span>
+              <span className="text-[10px] text-neutral-400 font-mono tracking-normal normal-case">
+                ({activeAccordion === 'details' ? 'Hide overview' : 'View overview & composition'})
+              </span>
+            </span>
+            <span className="font-mono text-neutral-400 group-hover:text-white px-2 py-0.5 border border-neutral-800 group-hover:border-neutral-600 rounded text-[10px]">
+              {activeAccordion === 'details' ? 'Less Details ▲' : 'More Details ▼'}
             </span>
           </button>
           {activeAccordion === 'details' && (
-            <div className="pb-4 text-xs text-neutral-400 font-light leading-relaxed space-y-3">
-              <p>{product.description}</p>
+            <div className="pb-4 text-xs text-neutral-300 font-light leading-relaxed space-y-3 pt-1">
+              <p className="text-neutral-300">{product.description}</p>
               {product.details && product.details.length > 0 && (
-                <ul className="pt-2 space-y-1 list-disc list-inside">
+                <ul className="pt-2 space-y-1.5 list-disc list-inside text-neutral-400">
                   {product.details.map((d, i) => (
                     <li key={i}>{d}</li>
                   ))}

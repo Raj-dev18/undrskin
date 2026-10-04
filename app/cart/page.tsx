@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useCart } from '@/components/cart/cart-context';
+import { BackButton } from '@/components/ui/back-button';
 
 export default function CartPage() {
   const { cart, updateQuantity, removeItem, openCheckout } = useCart();
@@ -18,14 +19,17 @@ export default function CartPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-      {/* Breadcrumb */}
-      <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-[#302824]/60 mb-6 font-mono">
-        <Link href="/" className="hover:text-[#7E1626] transition-colors">
-          Home
-        </Link>
-        <span>/</span>
-        <span className="text-[#302824] font-medium">Shopping Bag</span>
-      </nav>
+      {/* Back Button & Breadcrumb */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-2 border-b border-[rgba(48,40,36,0.12)]">
+        <BackButton label="Back to Shopping" fallbackUrl="/collections" className="text-[#302824] hover:text-[#7E1626]" />
+        <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-[#302824]/60 font-mono">
+          <Link href="/" className="hover:text-[#7E1626] transition-colors">
+            Home
+          </Link>
+          <span>/</span>
+          <span className="text-[#302824] font-medium">Shopping Bag</span>
+        </nav>
+      </div>
 
       <div className="flex flex-col sm:flex-row sm:items-baseline justify-between mb-8 pb-4 border-b border-[rgba(48,40,36,0.12)] gap-2">
         <h1 className="text-2xl sm:text-3xl font-light text-[#302824] tracking-tight uppercase">

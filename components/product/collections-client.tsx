@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Product, Collection } from '@/types/product';
 import { ProductGrid } from '@/components/product/product-grid';
 import { CollectionFilter } from '@/components/product/collection-filter';
+import { BackButton } from '@/components/ui/back-button';
 
 interface CollectionsClientProps {
   initialProducts: Product[];
@@ -51,18 +52,21 @@ export function CollectionsClient({
 
   return (
     <div className="collections-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      {/* Breadcrumb */}
-      <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-neutral-500 mb-6">
-        <Link href="/" className="hover:text-white transition-colors">Home</Link>
-        <span>/</span>
-        <Link href="/collections" className="hover:text-white transition-colors">Collections</Link>
-        {activeCategory !== 'all' && (
-          <>
-            <span>/</span>
-            <span className="text-white capitalize">{activeCategory.replace('-', ' ')}</span>
-          </>
-        )}
-      </nav>
+      {/* Back Button & Breadcrumb */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-2 border-b border-neutral-900/60">
+        <BackButton label="Back to Home" fallbackUrl="/" />
+        <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-neutral-500">
+          <Link href="/" className="hover:text-white transition-colors">Home</Link>
+          <span>/</span>
+          <Link href="/collections" className="hover:text-white transition-colors">Collections</Link>
+          {activeCategory !== 'all' && (
+            <>
+              <span>/</span>
+              <span className="text-white capitalize">{activeCategory.replace('-', ' ')}</span>
+            </>
+          )}
+        </nav>
+      </div>
 
       {/* Header */}
       <div className="max-w-2xl mb-8">

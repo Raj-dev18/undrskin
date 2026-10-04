@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 import { searchProducts } from '@/lib/shopify';
 import { ProductGrid } from '@/components/product/product-grid';
+import { BackButton } from '@/components/ui/back-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,15 +25,18 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const products = cleanQuery ? await searchProducts(cleanQuery) : [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-      {/* Breadcrumb */}
-      <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-neutral-500 mb-6">
-        <Link href="/" className="hover:text-white transition-colors">
-          Home
-        </Link>
-        <span>/</span>
-        <span className="text-neutral-900">Search</span>
-      </nav>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+      {/* Back Button & Breadcrumb */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-2 border-b border-neutral-900/60">
+        <BackButton label="Back to Catalog" fallbackUrl="/collections" />
+        <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-neutral-500">
+          <Link href="/" className="hover:text-white transition-colors">
+            Home
+          </Link>
+          <span>/</span>
+          <span className="text-white">Search</span>
+        </nav>
+      </div>
 
       {/* Header & Query Input */}
       <div className="max-w-2xl mb-12">

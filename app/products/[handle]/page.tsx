@@ -2,11 +2,12 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Metadata } from 'next';
 import { getProductByHandle, getProducts, getFAQs } from '@/lib/shopify';
-import { getJudgeMeProductReviews } from '@/lib/judgeme';
+import { getJudgeMeProductReviews, getJudgeMeStoreReviews } from '@/lib/judgeme';
 import { ProductView } from '@/components/product/product-view';
 import { ProductRecommendations } from '@/components/product/product-recommendations';
 import { ReviewsSection } from '@/components/product/reviews-section';
 import { ProductFaqPreview } from '@/components/product/product-faq-preview';
+import { BackButton } from '@/components/ui/back-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,11 +59,27 @@ export default async function ProductPage({ params }: Props) {
     getJudgeMeProductReviews(product.id, product.handle),
   ]);
 
+  let finalReviews = judgeMeData.reviews;
+  let finalRating = judgeMeData.rating;
+  let finalReviewCount = judgeMeData.reviewCount;
+
+  // Fallback to verified Judge.me store reviews if this specific product handle has 0 reviews
+  if (finalReviews.length === 0) {
+    const storeReviews = await getJudgeMeStoreReviews(10);
+    if (storeReviews.length > 0) {
+      finalReviews = storeReviews;
+      finalReviewCount = storeReviews.length;
+      finalRating = Number(
+        (storeReviews.reduce((sum, r) => sum + r.rating, 0) / storeReviews.length).toFixed(1)
+      );
+    }
+  }
+
   // Synchronize product model with dynamic Judge.me reviews and rating
-  if (judgeMeData) {
-    product.rating = judgeMeData.rating;
-    product.reviewCount = judgeMeData.reviewCount;
-    product.reviews = judgeMeData.reviews;
+  product.rating = finalRating;
+  product.reviewCount = finalReviewCount;
+  product.reviews = finalReviews;
+  if (judgeMeData.widgetHtml) {
     product.judgeMeWidgetHtml = judgeMeData.widgetHtml;
   }
 
@@ -104,28 +121,33 @@ export default async function ProductPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Breadcrumbs */}
-        <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-neutral-400 mb-8">
-          <Link href="/" className="hover:text-white transition-colors">
-            Home
-          </Link>
-          <span>/</span>
-          <Link href="/collections" className="hover:text-white transition-colors">
-            Shop
-          </Link>
-          <span>/</span>
-          <span className="text-white truncate">{product.title}</span>
-        </nav>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        {/* Navigation Bar & Back Button */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-neutral-900/60">
+          <BackButton label="Back to Catalog" fallbackUrl="/collections" />
+
+          {/* Breadcrumbs */}
+          <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-neutral-400">
+            <Link href="/" className="hover:text-white transition-colors">
+              Home
+            </Link>
+            <span>/</span>
+            <Link href="/collections" className="hover:text-white transition-colors">
+              Shop
+            </Link>
+            <span>/</span>
+            <span className="text-white truncate max-w-[180px] sm:max-w-xs">{product.title}</span>
+          </nav>
+        </div>
 
         {/* Coordinated 2-column Product Display */}
         <ProductView product={product} />
 
         {/* Client Reviews Section */}
         <ReviewsSection
-          reviews={judgeMeData.reviews}
-          rating={judgeMeData.rating}
-          reviewCount={judgeMeData.reviewCount}
+          reviews={finalReviews}
+          rating={finalRating}
+          reviewCount={finalReviewCount}
           productTitle={product.title}
           widgetHtml={judgeMeData.widgetHtml}
           shopDomain={process.env.JUDGEME_SHOP_DOMAIN || process.env.SHOPIFY_STORE_DOMAIN || 'f7gwna-cx.myshopify.com'}

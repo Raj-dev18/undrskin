@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPolicies, type ShopifyPolicy } from '@/lib/shopify';
+import { BackButton } from '@/components/ui/back-button';
 
 const policyMap = {
   privacy: 'privacyPolicy',
@@ -31,13 +32,10 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
   const policy = (await getPolicies())[key] as ShopifyPolicy | null;
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-5 py-16 sm:px-8 sm:py-24">
-      <Link
-        href="/"
-        className="mb-8 inline-flex items-center text-xs uppercase tracking-[0.2em] opacity-70 transition-opacity hover:opacity-100"
-      >
-        ← Back home
-      </Link>
+    <main className="mx-auto w-full max-w-4xl px-5 py-12 sm:px-8 sm:py-20">
+      <div className="mb-6 pb-2 border-b border-neutral-900/60 flex items-center justify-between">
+        <BackButton label="Back to Home" fallbackUrl="/" />
+      </div>
       <div className="border-b border-black/10 pb-6">
         <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400">UNDRSKIN Legal</span>
         <h1 className="mt-2 font-serif text-3xl tracking-tight sm:text-5xl">{policy?.title || 'Policy not available'}</h1>
