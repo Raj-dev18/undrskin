@@ -11,6 +11,7 @@ export interface CartItem {
     name: string;
     value: string;
   }[];
+  trioColours?: string[];
 }
 
 export interface CartCost {
