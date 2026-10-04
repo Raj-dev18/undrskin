@@ -11,17 +11,19 @@ export function ThreeCanvas() {
     if (!container) return;
 
     const scene = new THREE.Scene();
+    const width = Math.max(container.clientWidth, 1);
+    const height = Math.max(container.clientHeight, 1);
     const camera = new THREE.PerspectiveCamera(
       45,
-      container.clientWidth / container.clientHeight,
+      width / height,
       0.1,
       1000
     );
     camera.position.z = 5;
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height, false);
     container.appendChild(renderer.domElement);
 
     // Elegant, undulating ethereal ribbon geometry representing skin/silk contour
@@ -58,12 +60,20 @@ export function ThreeCanvas() {
 
     const handleResize = () => {
       if (!container) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
+      const nextWidth = container.clientWidth;
+      const nextHeight = container.clientHeight;
+      if (!nextWidth || !nextHeight) return;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(nextWidth, nextHeight, false);
+      camera.aspect = nextWidth / nextHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
     };
 
     window.addEventListener('resize', handleResize);
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(handleResize)
+      : null;
+    resizeObserver?.observe(container);
 
     const clock = new THREE.Clock();
 
@@ -83,6 +93,7 @@ export function ThreeCanvas() {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('resize', handleResize);
+      resizeObserver?.disconnect();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }

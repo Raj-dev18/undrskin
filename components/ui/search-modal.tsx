@@ -91,7 +91,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
               <input
                 type="text"
                 autoFocus
-                placeholder="Search raw silk, contour slips, seamless bralettes..."
+                placeholder="Search bamboo underwear packs..."
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
@@ -154,7 +154,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                     No results found for &quot;{query}&quot;
                   </p>
                   <p className="text-[11px] text-neutral-500 font-light">
-                    Try searching for &quot;silk&quot;, &quot;bralette&quot;, or &quot;sculpt&quot;.
+                    Try a product pack name, color, or size.
                   </p>
                 </div>
               ) : (
