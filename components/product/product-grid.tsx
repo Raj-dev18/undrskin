@@ -9,7 +9,7 @@ interface ProductGridProps {
 
 export function ProductGrid({
   products,
-  emptyMessage = 'No silhouettes found matching your criteria.',
+  emptyMessage = 'No products found matching your criteria.',
 }: ProductGridProps) {
   if (products.length === 0) {
     return (

@@ -123,54 +123,77 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           </div>
         )}
 
-        {/* Multi-variant Quick Select Popover */}
+        {/* Multi-variant Quick Select Modal */}
         {quickSelectOpen && (
           <div
-            className="absolute inset-0 z-30 bg-neutral-950/95 backdrop-blur-md p-4 flex flex-col justify-between"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setQuickSelectOpen(false);
+            }}
           >
-            <div className="flex items-center justify-between border-b border-neutral-900 pb-2">
-              <span className="text-[10px] uppercase tracking-wider text-neutral-300">
-                Select Option
-              </span>
-              <button
-                onClick={() => setQuickSelectOpen(false)}
-                className="text-neutral-500 hover:text-white p-1 text-xs"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-2 overflow-y-auto max-h-[140px] my-2 pr-1">
-              {product.variants.map((v) => {
-                const isSelected = selectedVariant?.id === v.id;
-                return (
-                  <button
-                    key={v.id}
-                    onClick={() => setSelectedVariant(v)}
-                    disabled={!v.availableForSale}
-                    className={`flex items-center justify-between p-2 text-xs border transition-colors ${
-                      isSelected
-                        ? 'border-white bg-white text-black font-medium'
-                        : v.availableForSale
-                        ? 'border-neutral-800 text-neutral-300 hover:border-neutral-600'
-                        : 'border-neutral-900 text-neutral-600 line-through cursor-not-allowed'
-                    }`}
-                  >
-                    <span>{v.title}</span>
-                    <span className="font-mono text-[11px]">{v.price.formattedAmount}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={handleConfirmQuickAdd}
-              disabled={!selectedVariant?.availableForSale}
-              className="w-full py-2 bg-white text-black text-[10px] uppercase tracking-widest font-medium hover:bg-neutral-200 transition-colors"
+            <div
+              className="relative w-full max-w-sm rounded-2xl bg-[#F1E9DF] p-6 text-[#302824] shadow-2xl border border-[rgba(48,40,36,0.18)] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
             >
-              Add Selected to Bag
-            </button>
+              <div className="flex items-center justify-between pb-3 border-b border-[rgba(48,40,36,0.12)]">
+                <div>
+                  <h3 className="text-xs uppercase font-mono font-bold tracking-[0.2em] text-[#302824]">
+                    SELECT SIZE
+                  </h3>
+                  <p className="text-[11px] text-[#302824]/60 font-light truncate max-w-[220px]">
+                    {product.title}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setQuickSelectOpen(false)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-mono text-[#302824]/60 hover:text-[#302824] hover:bg-[#302824]/10 transition-colors"
+                  aria-label="Close size modal"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* 6 Clean Size Buttons in a 3x2 grid with high contrast */}
+              <div className="grid grid-cols-3 gap-2.5 py-1">
+                {product.variants.map((v) => {
+                  const sizeName = v.title.replace(/pack of 3/i, '').replace(/·/g, '').trim() || v.title;
+                  const isSelected = selectedVariant?.id === v.id;
+                  const isAvail = v.availableForSale;
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      disabled={!isAvail}
+                      onClick={() => setSelectedVariant(v)}
+                      className={`py-3 px-2 rounded-xl text-xs font-mono font-medium tracking-wider uppercase transition-all flex flex-col items-center justify-center border cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#302824] text-[#F1E9DF] border-[#302824] shadow-sm font-bold scale-[1.02]'
+                          : isAvail
+                          ? 'bg-white/90 hover:bg-white text-[#302824] border-[rgba(48,40,36,0.2)] hover:border-[#302824]'
+                          : 'bg-[#E3D7CB]/40 text-[#302824]/30 border-transparent line-through cursor-not-allowed'
+                      }`}
+                    >
+                      <span className="font-bold">{sizeName}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleConfirmQuickAdd}
+                  disabled={!selectedVariant?.availableForSale}
+                  className="w-full py-3.5 px-4 rounded-full btn-brand-primary text-xs font-mono uppercase tracking-[0.2em] font-medium transition-all shadow-md flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <span>ADD SELECTED TO BAG</span>
+                  <span className="text-[11px] opacity-80">· {selectedVariant?.price.formattedAmount || product.price.formattedAmount}</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
