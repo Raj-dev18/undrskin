@@ -9,21 +9,21 @@ interface CartContextType {
   isCartOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
-  addItem: (product: Product, variant: ProductVariant, quantity?: number) => void;
+  isCheckoutOpen: boolean;
+  openCheckout: () => Promise<void>;
+  closeCheckout: () => void;
+  addItem: (product: Product, variant: ProductVariant, quantity?: number, trioColours?: string[]) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
-  freeShippingThreshold: number;
-  amountToFreeShipping: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const FREE_SHIPPING_THRESHOLD = 150;
-
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const totalQuantity = items.reduce((acc, item) => acc + item.quantity, 0);
   const subtotalAmount = items.reduce((acc, item) => acc + item.variant.price.amount * item.quantity, 0);
-  const currencyCode = items[0]?.variant?.price?.currencyCode || 'USD';
+  const currencyCode = items[0]?.variant?.price?.currencyCode || 'INR';
 
   const formatPrice = (amount: number, currencyCode: string) => {
     const locale = currencyCode === 'INR' ? 'en-IN' : 'en-US';
@@ -75,8 +75,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
+  const openCheckout = async () => {
+    setIsCartOpen(false);
+    if (items.length === 0) return;
 
-  const addItem = (product: Product, variant: ProductVariant, quantity = 1) => {
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          lineItems: items.map((item) => ({ variantId: item.variantId, quantity: item.quantity })),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.checkoutUrl) throw new Error(data.error || 'Checkout could not be started.');
+      window.location.assign(data.checkoutUrl);
+    } catch (error) {
+      console.error('Shopify checkout redirect failed:', error);
+      /* Keep the existing checkout modal as a local recovery path when the
+         Shopify checkout endpoint is unavailable. */
+      setIsCheckoutOpen(true);
+    }
+  };
+  const closeCheckout = () => setIsCheckoutOpen(false);
+
+  const addItem = (product: Product, variant: ProductVariant, quantity = 1, trioColours?: string[]) => {
     setItems((prev) => {
       const existingIndex = prev.findIndex((item) => item.variantId === variant.id);
       if (existingIndex > -1) {
@@ -95,6 +118,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         variant,
         quantity,
         selectedOptions: variant.selectedOptions,
+        trioColours,
       };
       return [...prev, newItem];
     });
@@ -115,8 +139,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => setItems([]);
 
-  const amountToFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotalAmount);
-
   return (
     <CartContext.Provider
       value={{
@@ -124,12 +146,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         isCartOpen,
         openCart,
         closeCart,
+        isCheckoutOpen,
+        openCheckout,
+        closeCheckout,
         addItem,
         removeItem,
         updateQuantity,
         clearCart,
-        freeShippingThreshold: FREE_SHIPPING_THRESHOLD,
-        amountToFreeShipping,
       }}
     >
       {children}
