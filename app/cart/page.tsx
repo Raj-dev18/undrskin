@@ -157,7 +157,7 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between items-center">
                 <span>Standard Delivery</span>
-                <span className="font-mono text-xs font-medium text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded">
+                <span className="font-mono text-xs font-medium text-[#1B1717] bg-[#E2BC97]/60 px-2 py-0.5 rounded">
                   Complimentary
                 </span>
               </div>
@@ -178,7 +178,7 @@ export default function CartPage() {
               onClick={openCheckout}
               className="w-full py-4 btn-brand-primary text-xs uppercase tracking-widest font-semibold transition-all rounded-xl shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 cursor-pointer"
             >
-              <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-[#E2BC97] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
               <span>Proceed to Checkout</span>

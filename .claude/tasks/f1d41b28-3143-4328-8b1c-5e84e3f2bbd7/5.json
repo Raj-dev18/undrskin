@@ -1,0 +1,9 @@
+{
+  "id": "5",
+  "subject": "Write the WebGL cloth stage and interactions",
+  "description": "Reusable three.js stage: cutout garment on a wave-displaced plane, cursor push, warm haze, fibre motes, dye-bloom colorway transition, scroll choreography, drag-rotate in the configurator, no-WebGL image fallback.",
+  "activeForm": "Writing the WebGL cloth engine",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

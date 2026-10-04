@@ -1,0 +1,9 @@
+{
+  "id": "6",
+  "subject": "Assemble, inline assets and verify",
+  "description": "Inline all WebP assets as data URIs, concatenate into one HTML file, syntax-check the JS with node, sanity-check tokens/tags/aria, confirm file size, then hand over the demo file.",
+  "activeForm": "Assembling and verifying the build",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

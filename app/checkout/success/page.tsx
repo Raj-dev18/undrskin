@@ -31,7 +31,7 @@ function SuccessContent() {
       <div className="bg-[#F1E9DF] rounded-3xl p-8 sm:p-12 border border-[rgba(48,40,36,0.15)] shadow-xl space-y-8">
         
         {/* Success Icon */}
-        <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow-inner">
+        <div className="w-16 h-16 rounded-full bg-[#E2BC97] text-[#1B1717] flex items-center justify-center mx-auto shadow-inner">
           <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>

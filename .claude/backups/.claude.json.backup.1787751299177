@@ -1,0 +1,26 @@
+{
+  "unpinOpus47LaunchEffort": true,
+  "unpinOpus48LaunchEffort": true,
+  "unpinFable5LaunchEffort": true,
+  "oauthAccount": {
+    "accountUuid": "beb3730f-b625-4035-b13b-a933e2d9073b",
+    "emailAddress": "cowork-3p@localhost",
+    "organizationUuid": "00000000-0000-4000-8000-000000000001"
+  },
+  "firstStartTime": "2026-08-26T13:28:38.150Z",
+  "firstStartVersion": "2.1.246",
+  "machineID": "615399c6f5ce29b681549af6f9ef6e2d5b38c3523dae7d13cb895335ba104c8c",
+  "opusProMigrationComplete": true,
+  "sonnet1m45MigrationComplete": true,
+  "seenNotifications": {},
+  "hasResetAutoModeOptInForDefaultOffer": true,
+  "migrationVersion": 13,
+  "userID": "5a146c5522c4c193eebb4cfd654d563f1309044f817da4cf7c1b67519d1f08a2",
+  "pluginUsage": {
+    "anthropic-skills@inline": {
+      "usageCount": 0,
+      "lastUsedAt": 1787750918682,
+      "lastUsedNumStartups": 0
+    }
+  }
+}

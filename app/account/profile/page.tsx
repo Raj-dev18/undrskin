@@ -201,7 +201,7 @@ export default function ProfilePage() {
               {isSaving ? 'Saving...' : isSaved ? 'Details Saved ✓' : 'Save Profile'}
             </button>
             {saveMessage && (
-              <span className={`text-xs font-medium ${isSaved ? 'text-emerald-700' : 'text-[#302824]/70'}`}>
+              <span className={`text-xs font-medium ${isSaved ? 'text-[#7E1626]' : 'text-[#302824]/70'}`}>
                 {saveMessage}
               </span>
             )}

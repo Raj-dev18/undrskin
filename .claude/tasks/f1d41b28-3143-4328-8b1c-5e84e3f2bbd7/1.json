@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "subject": "Extract reference frames from the video",
+  "description": "Pull ~8 evenly spaced frames from the uploaded MP4 with ffmpeg and view them to match the immersive 3D e-commerce style.",
+  "activeForm": "Extracting reference frames from video",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

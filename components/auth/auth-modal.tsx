@@ -153,7 +153,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </form>
 
           {message && (
-            <p className="mt-3 text-xs text-center text-emerald-600 font-medium">
+            <p className="mt-3 text-xs text-center text-[#7E1626] font-medium">
               {message}
             </p>
           )}

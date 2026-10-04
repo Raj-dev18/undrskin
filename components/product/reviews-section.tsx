@@ -138,9 +138,9 @@ export function ReviewsSection({
 
       {/* Success Notification Banner */}
       {submitSuccess && (
-        <div className="p-4 mb-6 bg-emerald-900/20 border border-emerald-600/40 text-emerald-800 rounded-full text-xs font-mono flex items-center justify-between shadow-sm px-6">
+        <div className="p-4 mb-6 bg-[#E2BC97]/30 border border-[#7F1727]/40 text-[#1B1717] rounded-full text-xs font-mono flex items-center justify-between shadow-sm px-6">
           <span>✓ Thank you! Your review has been published and saved to Judge.me.</span>
-          <button onClick={() => setSubmitSuccess(false)} className="text-emerald-900 font-bold ml-4">✕</button>
+          <button onClick={() => setSubmitSuccess(false)} className="text-[#7F1727] font-bold ml-4">✕</button>
         </div>
       )}
 
@@ -165,7 +165,7 @@ export function ReviewsSection({
                   onClick={() => setNewRating(star)}
                   onMouseEnter={() => setHoverRating(star)}
                   onMouseLeave={() => setHoverRating(0)}
-                  className="text-2xl text-[#FFC107] focus:outline-none transition-transform hover:scale-125 cursor-pointer"
+                  className="text-2xl text-[#E2BC97] focus:outline-none transition-transform hover:scale-125 cursor-pointer"
                   aria-label={`Rate ${star} stars`}
                 >
                   {star <= (hoverRating || newRating) ? '★' : '☆'}
@@ -292,7 +292,7 @@ export function ReviewsSection({
                     <div>
                       <span className="text-sm font-medium text-white block">{rev.author}</span>
                       {rev.verifiedBuyer && (
-                        <span className="text-[10px] text-emerald-300 uppercase tracking-wider font-mono">
+                        <span className="text-[10px] text-[#E2BC97] uppercase tracking-wider font-mono">
                           ✓ Verified Patron
                         </span>
                       )}
@@ -302,7 +302,7 @@ export function ReviewsSection({
                     )}
                   </div>
 
-                  <div className="text-sm text-[#FFC107] tracking-wider mb-2">
+                  <div className="text-sm text-[#E2BC97] tracking-wider mb-2">
                     {'★'.repeat(rev.rating)}
                     <span className="text-[#F1E9DF]/30">{'★'.repeat(Math.max(0, 5 - rev.rating))}</span>
                   </div>
