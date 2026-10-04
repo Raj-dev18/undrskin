@@ -1,7 +1,7 @@
 {% comment %}
-  UndrSkin 3D Product Section
-  Native Shopify Liquid theme section with WebGL/Three.js 3D cloth engine,
-  dynamic Shopify variant mapping, material inspection modal & size guide.
+  UndrSkin 3D Product Showcase Section (Homepage / Featured 3D Experience)
+  Self-contained, homepage-friendly interactive 3D product viewer.
+  Displays ONLY: Eyebrow/Title, 3D Canvas + What's Inside Modal, Colour & Size selectors.
 {% endcomment %}
 
 {{ 'undrskin-3d.css' | asset_url | stylesheet_tag }}
@@ -23,7 +23,7 @@
       </h1>
     </div>
 
-    <!-- Hero Grid: Left (3D Viewer) / Right (Product Details & CTA) -->
+    <!-- Hero Grid: Left (3D Viewer) / Right (Curated Product Options) -->
     <div class="undrskin-hero-grid">
       
       <!-- Left Column: Interactive 3D Stage -->
@@ -50,7 +50,7 @@
         </div>
       </div>
 
-      <!-- Right Column: Product Controls & Information -->
+      <!-- Right Column: Product Title & Interactive Selectors Only -->
       <div class="undrskin-details-panel">
         
         <!-- Desktop Header -->
@@ -63,33 +63,33 @@
           </h1>
         </div>
 
-        <!-- Pricing & Savings Badge -->
-        <div class="undrskin-price-wrapper">
-          <span class="undrskin-price">
-            {{ current_variant.price | money }}
-          </span>
-          {% if current_variant.compare_at_price > current_variant.price %}
-            <span class="undrskin-compare-price">
-              {{ current_variant.compare_at_price | money }}
+        <!-- Optional Price Display (Toggleable via section settings) -->
+        {% if section.settings.show_price %}
+          <div class="undrskin-price-wrapper">
+            <span class="undrskin-price">
+              {{ current_variant.price | money }}
             </span>
-            <span class="undrskin-badge-save">
-              SAVE {{ current_variant.compare_at_price | minus: current_variant.price | times: 100.0 | divided_by: current_variant.compare_at_price | round }}%
-            </span>
-          {% endif %}
-        </div>
-
-        <!-- Product Summary Description -->
-        {% if product.description != blank %}
-          <div class="undrskin-description">
-            {{ product.description }}
-          </div>
-        {% else %}
-          <div class="undrskin-description">
-            <p>Second-skin comfort crafted from 95% organic bamboo viscose. Breathable, anti-chafe, and seamlessly tailored for all-day freedom.</p>
+            {% if current_variant.compare_at_price > current_variant.price %}
+              <span class="undrskin-compare-price">
+                {{ current_variant.compare_at_price | money }}
+              </span>
+              <span class="undrskin-badge-save">
+                SAVE {{ current_variant.compare_at_price | minus: current_variant.price | times: 100.0 | divided_by: current_variant.compare_at_price | round }}%
+              </span>
+            {% endif %}
           </div>
         {% endif %}
 
-        <!-- Shopify Variant Form -->
+        <!-- Optional Description (Toggleable via section settings) -->
+        {% if section.settings.show_description %}
+          {% if product.description != blank %}
+            <div class="undrskin-description">
+              {{ product.description }}
+            </div>
+          {% endif %}
+        {% endif %}
+
+        <!-- Product Options Form (Colour & Size Selectors) -->
         <form method="post" action="/cart/add" class="undrskin-variant-form" data-type="add-to-cart-form">
           <input type="hidden" name="id" value="{{ current_variant.id }}">
 
@@ -149,7 +149,9 @@
               <div class="undrskin-option-group">
                 <div class="undrskin-option-header">
                   <span>Size</span>
-                  <button type="button" class="undrskin-size-guide-trigger">Size Guide</button>
+                  {% if section.settings.show_size_guide %}
+                    <button type="button" class="undrskin-size-guide-trigger">Size Guide</button>
+                  {% endif %}
                 </div>
                 <div class="undrskin-size-options" id="sizes">
                   {% for val in option.values %}
@@ -194,7 +196,9 @@
             <div class="undrskin-option-group">
               <div class="undrskin-option-header">
                 <span>Size</span>
-                <button type="button" class="undrskin-size-guide-trigger">Size Guide</button>
+                {% if section.settings.show_size_guide %}
+                  <button type="button" class="undrskin-size-guide-trigger">Size Guide</button>
+                {% endif %}
               </div>
               <div class="undrskin-size-options" id="sizes">
                 <button type="button" class="undrskin-size-btn size" data-value="XS" data-s="XS">XS</button>
@@ -207,50 +211,54 @@
             </div>
           {% endunless %}
 
-          <!-- Add to Bag CTA Button -->
-          <button type="submit" id="addBtn" class="undrskin-add-to-bag-btn" {% unless current_variant.available %}disabled{% endunless %}>
-            <span>
-              {% if current_variant.available %}
-                ADD TO BAG
-              {% else %}
-                SOLD OUT
-              {% endif %}
-            </span>
-          </button>
+          <!-- Optional Add to Bag CTA Button (Toggleable via section settings) -->
+          {% if section.settings.show_cta %}
+            <button type="submit" id="addBtn" class="undrskin-add-to-bag-btn" {% unless current_variant.available %}disabled{% endunless %}>
+              <span>
+                {% if current_variant.available %}
+                  ADD TO BAG
+                {% else %}
+                  SOLD OUT
+                {% endif %}
+              </span>
+            </button>
+          {% endif %}
         </form>
 
-        <!-- Compact Accordions for Mobile Editorial Content -->
-        <div class="undrskin-accordions-wrapper">
-          <div class="undrskin-accordion-item is-active">
-            <button type="button" class="undrskin-accordion-header">
-              <span>FIBRE & MATERIAL</span>
-              <span class="undrskin-accordion-icon">+</span>
-            </button>
-            <div class="undrskin-accordion-content">
-              <p>95% organic bamboo viscose · 5% spandex. Spun from natural cellulose grass for ultra-smooth skin contact.</p>
+        <!-- Optional Accordions (Toggleable via section settings) -->
+        {% if section.settings.show_accordions %}
+          <div class="undrskin-accordions-wrapper">
+            <div class="undrskin-accordion-item is-active">
+              <button type="button" class="undrskin-accordion-header">
+                <span>FIBRE & MATERIAL</span>
+                <span class="undrskin-accordion-icon">+</span>
+              </button>
+              <div class="undrskin-accordion-content">
+                <p>95% organic bamboo viscose · 5% spandex. Spun from natural cellulose grass for ultra-smooth skin contact.</p>
+              </div>
             </div>
-          </div>
 
-          <div class="undrskin-accordion-item">
-            <button type="button" class="undrskin-accordion-header">
-              <span>FIT & CONSTRUCTION</span>
-              <span class="undrskin-accordion-icon">+</span>
-            </button>
-            <div class="undrskin-accordion-content">
-              <p>Self-fabric elastic-free waistband with full seat coverage that lays flat without pinching or digging in.</p>
+            <div class="undrskin-accordion-item">
+              <button type="button" class="undrskin-accordion-header">
+                <span>FIT & CONSTRUCTION</span>
+                <span class="undrskin-accordion-icon">+</span>
+              </button>
+              <div class="undrskin-accordion-content">
+                <p>Self-fabric elastic-free waistband with full seat coverage that lays flat without pinching or digging in.</p>
+              </div>
             </div>
-          </div>
 
-          <div class="undrskin-accordion-item">
-            <button type="button" class="undrskin-accordion-header">
-              <span>BREATHABILITY & CARE</span>
-              <span class="undrskin-accordion-icon">+</span>
-            </button>
-            <div class="undrskin-accordion-content">
-              <p>Moisture-wicking, temperature regulating, and machine washable at 30°C. Tumble dry low.</p>
+            <div class="undrskin-accordion-item">
+              <button type="button" class="undrskin-accordion-header">
+                <span>BREATHABILITY & CARE</span>
+                <span class="undrskin-accordion-icon">+</span>
+              </button>
+              <div class="undrskin-accordion-content">
+                <p>Moisture-wicking, temperature regulating, and machine washable at 30°C. Tumble dry low.</p>
+              </div>
             </div>
           </div>
-        </div>
+        {% endif %}
 
       </div>
     </div>
@@ -313,72 +321,74 @@
   </div>
 
   <!-- Size Guide Modal -->
-  <div class="undrskin-size-guide-modal" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="undrskin-size-guide-content">
-      <div class="undrskin-size-guide-header">
-        <h3>Size Guide & Body Measurements</h3>
-        <button type="button" class="undrskin-size-guide-close" aria-label="Close size guide">&times;</button>
-      </div>
-      <div class="undrskin-size-guide-body">
-        <p>Measurements refer to body size, not garment dimensions. If between sizes, we recommend sizing up for a relaxed fit.</p>
-        <table class="undrskin-size-table">
-          <thead>
-            <tr>
-              <th>Size</th>
-              <th>Waist (in)</th>
-              <th>Hips (in)</th>
-              <th>Waist (cm)</th>
-              <th>Hips (cm)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>XS</strong></td>
-              <td>24" – 26"</td>
-              <td>34" – 36"</td>
-              <td>61 – 66 cm</td>
-              <td>86 – 91 cm</td>
-            </tr>
-            <tr>
-              <td><strong>S</strong></td>
-              <td>26" – 28"</td>
-              <td>36" – 38"</td>
-              <td>66 – 71 cm</td>
-              <td>91 – 97 cm</td>
-            </tr>
-            <tr class="is-highlight">
-              <td><strong>M</strong></td>
-              <td>28" – 30"</td>
-              <td>38" – 40"</td>
-              <td>71 – 76 cm</td>
-              <td>97 – 102 cm</td>
-            </tr>
-            <tr>
-              <td><strong>L</strong></td>
-              <td>30" – 33"</td>
-              <td>40" – 43"</td>
-              <td>76 – 84 cm</td>
-              <td>102 – 109 cm</td>
-            </tr>
-            <tr>
-              <td><strong>XL</strong></td>
-              <td>33" – 36"</td>
-              <td>43" – 46"</td>
-              <td>84 – 91 cm</td>
-              <td>109 – 117 cm</td>
-            </tr>
-            <tr>
-              <td><strong>XXL</strong></td>
-              <td>36" – 39"</td>
-              <td>46" – 49"</td>
-              <td>91 – 99 cm</td>
-              <td>117 – 124 cm</td>
-            </tr>
-          </tbody>
-        </table>
+  {% if section.settings.show_size_guide %}
+    <div class="undrskin-size-guide-modal" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="undrskin-size-guide-content">
+        <div class="undrskin-size-guide-header">
+          <h3>Size Guide & Body Measurements</h3>
+          <button type="button" class="undrskin-size-guide-close" aria-label="Close size guide">&times;</button>
+        </div>
+        <div class="undrskin-size-guide-body">
+          <p>Measurements refer to body size, not garment dimensions. If between sizes, we recommend sizing up for a relaxed fit.</p>
+          <table class="undrskin-size-table">
+            <thead>
+              <tr>
+                <th>Size</th>
+                <th>Waist (in)</th>
+                <th>Hips (in)</th>
+                <th>Waist (cm)</th>
+                <th>Hips (cm)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>XS</strong></td>
+                <td>24" – 26"</td>
+                <td>34" – 36"</td>
+                <td>61 – 66 cm</td>
+                <td>86 – 91 cm</td>
+              </tr>
+              <tr>
+                <td><strong>S</strong></td>
+                <td>26" – 28"</td>
+                <td>36" – 38"</td>
+                <td>66 – 71 cm</td>
+                <td>91 – 97 cm</td>
+              </tr>
+              <tr class="is-highlight">
+                <td><strong>M</strong></td>
+                <td>28" – 30"</td>
+                <td>38" – 40"</td>
+                <td>71 – 76 cm</td>
+                <td>97 – 102 cm</td>
+              </tr>
+              <tr>
+                <td><strong>L</strong></td>
+                <td>30" – 33"</td>
+                <td>40" – 43"</td>
+                <td>76 – 84 cm</td>
+                <td>102 – 109 cm</td>
+              </tr>
+              <tr>
+                <td><strong>XL</strong></td>
+                <td>33" – 36"</td>
+                <td>43" – 46"</td>
+                <td>84 – 91 cm</td>
+                <td>109 – 117 cm</td>
+              </tr>
+              <tr>
+                <td><strong>XXL</strong></td>
+                <td>36" – 39"</td>
+                <td>46" – 49"</td>
+                <td>91 – 99 cm</td>
+                <td>117 – 124 cm</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
+  {% endif %}
 
   <!-- Product Variants JSON Data -->
   <script type="application/json" data-product-variants-json>
@@ -386,7 +396,7 @@
   </script>
 </section>
 
-<!-- Product Collection Grid Section (Desktop: 3-column [3, 3, 1] | Mobile: 2-column) -->
+<!-- Product Collection Grid Section -->
 {% if section.settings.show_collection_grid %}
   <section class="undrskin-collection-section">
     <div class="undrskin-container">
@@ -453,9 +463,39 @@
     },
     {
       "type": "checkbox",
+      "id": "show_price",
+      "label": "Show Product Price",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show Product Description",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Show Add to Bag Button",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_size_guide",
+      "label": "Show Size Guide Link & Modal",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_accordions",
+      "label": "Show Product Accordions",
+      "default": false
+    },
+    {
+      "type": "checkbox",
       "id": "show_collection_grid",
       "label": "Show Collection Product Grid",
-      "default": true
+      "default": false
     },
     {
       "type": "text",
