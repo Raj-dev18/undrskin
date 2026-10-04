@@ -1,13 +1,10 @@
 {% comment %}
-  ============================================================================
-  UNDRSKIN 3D PRODUCT SECTION (sections/undrskin-3d-product.liquid)
-  Reuses the exact working 3D cloth engine, shaders, and Base64 WebP textures
-  ============================================================================
+  UndrSkin 3D Product Section
+  Native Shopify Liquid theme section with WebGL/Three.js 3D cloth engine,
+  dynamic Shopify variant mapping, material inspection modal & size guide.
 {% endcomment %}
 
 {{ 'undrskin-3d.css' | asset_url | stylesheet_tag }}
-
-<!-- Include Three.js core r128 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
 <script src="{{ 'undrskin-3d.js' | asset_url }}" defer></script>
 
@@ -16,25 +13,24 @@
 <section class="undrskin-3d-product" id="Undrskin3D-{{ section.id }}" data-section-id="{{ section.id }}">
   <div class="undrskin-container">
     
-    <!-- Mobile Dedicated Top Info Header -->
-    <div class="undrskin-mobile-top-info" style="display: none;">
+    <!-- Mobile Header (Shown on mobile viewports above 3D stage) -->
+    <div class="undrskin-mobile-top-info">
       <div class="undrskin-eyebrow">
         {{ section.settings.eyebrow_text | default: "EVERYDAY TRIO · PACK OF 3" }}
       </div>
-      <h1 class="undrskin-product-title" style="margin-top: 0.25rem;">
+      <h1 class="undrskin-product-title">
         {{ product.title | default: "The Bamboo Hipster" }}
       </h1>
     </div>
 
-    <!-- Main Hero Grid (Desktop: Left 3D, Right Details | Mobile: Top Info -> Middle 3D -> Bottom Controls) -->
+    <!-- Hero Grid: Left (3D Viewer) / Right (Product Details & CTA) -->
     <div class="undrskin-hero-grid">
       
-      <!-- LEFT COLUMN: Reused Three.js 3D Cloth Stage Viewer -->
+      <!-- Left Column: Interactive 3D Stage -->
       <div class="undrskin-3d-stage-wrapper">
         <div class="undrskin-3d-stage">
           <canvas class="undrskin-3d-canvas" aria-label="Interactive 3D product view"></canvas>
           
-          <!-- Fallback Image -->
           {% if product.featured_image %}
             <img 
               src="{{ product.featured_image | image_url: width: 800 }}" 
@@ -44,20 +40,20 @@
             >
           {% endif %}
 
-          <!-- Top-Right Exploded Technical Diagram Button (👁) -->
+          <!-- Eye Button: WHAT'S INSIDE? positioned inside 3D viewer (top-right) -->
           {% if section.settings.show_exploded_btn %}
-            <button type="button" class="undrskin-exploded-btn" aria-label="Open material & construction diagram">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-              </svg>
+            <button type="button" class="undrskin-exploded-btn" aria-label="Open material and construction diagram">
+              <span class="undrskin-eye-icon" aria-hidden="true">👁</span>
               <span>{{ section.settings.exploded_btn_label | default: "WHAT'S INSIDE?" }}</span>
             </button>
           {% endif %}
         </div>
       </div>
 
-      <!-- RIGHT COLUMN: Commerce Form & Details Panel -->
+      <!-- Right Column: Product Controls & Information -->
       <div class="undrskin-details-panel">
+        
+        <!-- Desktop Header -->
         <div class="undrskin-desktop-only">
           <div class="undrskin-eyebrow">
             {{ section.settings.eyebrow_text | default: "EVERYDAY TRIO · PACK OF 3" }}
@@ -67,6 +63,7 @@
           </h1>
         </div>
 
+        <!-- Pricing & Savings Badge -->
         <div class="undrskin-price-wrapper">
           <span class="undrskin-price">
             {{ current_variant.price | money }}
@@ -81,59 +78,137 @@
           {% endif %}
         </div>
 
+        <!-- Product Summary Description -->
         {% if product.description != blank %}
           <div class="undrskin-description">
             {{ product.description }}
           </div>
         {% else %}
           <div class="undrskin-description">
-            Soft bamboo essentials designed to disappear on skin and move through every day with effortless comfort.
+            <p>Second-skin comfort crafted from 95% organic bamboo viscose. Breathable, anti-chafe, and seamlessly tailored for all-day freedom.</p>
           </div>
         {% endif %}
 
-        <!-- Variant Selection Form -->
+        <!-- Shopify Variant Form -->
         <form method="post" action="/cart/add" class="undrskin-variant-form" data-type="add-to-cart-form">
           <input type="hidden" name="id" value="{{ current_variant.id }}">
 
-          <!-- Colour Variant Selector (Triggers Shader Radial Wipe Transition) -->
-          <div class="undrskin-option-group">
-            <div class="undrskin-option-header">
-              <span>Colourway</span>
-            </div>
-            <div class="undrskin-color-swatches">
-              <button type="button" class="undrskin-swatch-btn is-active" data-value="Dusty Rose" data-hex="#B97073" aria-label="Dusty Rose">
-                <span class="swatch-inner" style="background-color: #B97073;"></span>
-              </button>
-              <button type="button" class="undrskin-swatch-btn" data-value="Maroon" data-hex="#7E1626" aria-label="Maroon">
-                <span class="swatch-inner" style="background-color: #7E1626;"></span>
-              </button>
-              <button type="button" class="undrskin-swatch-btn" data-value="Onyx Black" data-hex="#1B1717" aria-label="Onyx Black">
-                <span class="swatch-inner" style="background-color: #1B1717;"></span>
-              </button>
-              <button type="button" class="undrskin-swatch-btn" data-value="Nude Sand" data-hex="#E2BC96" aria-label="Nude Sand">
-                <span class="swatch-inner" style="background-color: #E2BC96;"></span>
-              </button>
-            </div>
-          </div>
+          {% assign has_color_option = false %}
+          {% assign has_size_option = false %}
 
-          <!-- Size Variant Selector -->
-          <div class="undrskin-option-group">
-            <div class="undrskin-option-header">
-              <span>Size</span>
-              <button type="button" class="undrskin-size-guide-trigger">Size Guide</button>
+          {% for option in product.options_with_values %}
+            {% assign option_name_lower = option.name | downcase %}
+
+            {% if option_name_lower contains 'color' or option_name_lower contains 'colour' or option_name_lower contains 'shade' or option_name_lower contains 'colourway' %}
+              {% assign has_color_option = true %}
+              <div class="undrskin-option-group">
+                <div class="undrskin-option-header">
+                  <span>Colour: <strong id="cwName">{{ option.selected_value | default: option.values.first }}</strong></span>
+                </div>
+                <div class="undrskin-swatch-group" id="dots">
+                  {% for val in option.values %}
+                    {% assign val_lower = val | downcase %}
+                    {% assign hex = '#B96F73' %}
+                    {% assign c_idx = 0 %}
+
+                    {% if val_lower contains 'wine' or val_lower contains 'maroon' or val_lower contains 'red' %}
+                      {% assign hex = '#7E1626' %}
+                      {% assign c_idx = 1 %}
+                    {% elsif val_lower contains 'black' or val_lower contains 'onyx' or val_lower contains 'dark' %}
+                      {% assign hex = '#1B1717' %}
+                      {% assign c_idx = 2 %}
+                    {% elsif val_lower contains 'sand' or val_lower contains 'beige' or val_lower contains 'nude' %}
+                      {% assign hex = '#E2BC96' %}
+                      {% assign c_idx = 3 %}
+                    {% elsif val_lower contains 'rose' or val_lower contains 'pink' or val_lower contains 'dusty' %}
+                      {% assign hex = '#B96F73' %}
+                      {% assign c_idx = 0 %}
+                    {% else %}
+                      {% assign c_idx = forloop.index0 | modulo: 4 %}
+                      {% if c_idx == 0 %}{% assign hex = '#B96F73' %}
+                      {% elsif c_idx == 1 %}{% assign hex = '#7E1626' %}
+                      {% elsif c_idx == 2 %}{% assign hex = '#1B1717' %}
+                      {% else %}{% assign hex = '#E2BC96' %}{% endif %}
+                    {% endif %}
+
+                    <button 
+                      type="button" 
+                      class="undrskin-swatch-btn dot {% if forloop.first %}is-active is-on{% endif %}" 
+                      data-value="{{ val | escape }}" 
+                      data-c="{{ c_idx }}" 
+                      data-hex="{{ hex }}" 
+                      aria-label="{{ val | escape }}"
+                    >
+                      <span class="swatch-inner" style="background-color: {{ hex }};"></span>
+                    </button>
+                  {% endfor %}
+                </div>
+              </div>
+            {% elsif option_name_lower contains 'size' %}
+              {% assign has_size_option = true %}
+              <div class="undrskin-option-group">
+                <div class="undrskin-option-header">
+                  <span>Size</span>
+                  <button type="button" class="undrskin-size-guide-trigger">Size Guide</button>
+                </div>
+                <div class="undrskin-size-options" id="sizes">
+                  {% for val in option.values %}
+                    <button 
+                      type="button" 
+                      class="undrskin-size-btn size {% if option.selected_value == val or forloop.first %}is-active is-on{% endif %}" 
+                      data-value="{{ val | escape }}"
+                      data-s="{{ val | escape }}"
+                    >
+                      {{ val }}
+                    </button>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+
+          <!-- Fallback options if product has no Shopify options configured -->
+          {% unless has_color_option %}
+            <div class="undrskin-option-group">
+              <div class="undrskin-option-header">
+                <span>Colour: <strong id="cwName">Dusty Rose</strong></span>
+              </div>
+              <div class="undrskin-swatch-group" id="dots">
+                <button type="button" class="undrskin-swatch-btn dot is-active is-on" data-value="Dusty Rose" data-c="0" data-hex="#B96F73" aria-label="Dusty Rose">
+                  <span class="swatch-inner" style="background-color: #B96F73;"></span>
+                </button>
+                <button type="button" class="undrskin-swatch-btn dot" data-value="Maroon" data-c="1" data-hex="#7E1626" aria-label="Maroon">
+                  <span class="swatch-inner" style="background-color: #7E1626;"></span>
+                </button>
+                <button type="button" class="undrskin-swatch-btn dot" data-value="Onyx Black" data-c="2" data-hex="#1B1717" aria-label="Onyx Black">
+                  <span class="swatch-inner" style="background-color: #1B1717;"></span>
+                </button>
+                <button type="button" class="undrskin-swatch-btn dot" data-value="Nude Sand" data-c="3" data-hex="#E2BC96" aria-label="Nude Sand">
+                  <span class="swatch-inner" style="background-color: #E2BC96;"></span>
+                </button>
+              </div>
             </div>
-            <div class="undrskin-size-options">
-              <button type="button" class="undrskin-size-btn" data-value="XS">XS</button>
-              <button type="button" class="undrskin-size-btn" data-value="S">S</button>
-              <button type="button" class="undrskin-size-btn is-active" data-value="M">M</button>
-              <button type="button" class="undrskin-size-btn" data-value="L">L</button>
-              <button type="button" class="undrskin-size-btn" data-value="XL">XL</button>
-              <button type="button" class="undrskin-size-btn" data-value="XXL">XXL</button>
+          {% endunless %}
+
+          {% unless has_size_option %}
+            <div class="undrskin-option-group">
+              <div class="undrskin-option-header">
+                <span>Size</span>
+                <button type="button" class="undrskin-size-guide-trigger">Size Guide</button>
+              </div>
+              <div class="undrskin-size-options" id="sizes">
+                <button type="button" class="undrskin-size-btn size" data-value="XS" data-s="XS">XS</button>
+                <button type="button" class="undrskin-size-btn size" data-value="S" data-s="S">S</button>
+                <button type="button" class="undrskin-size-btn size is-active is-on" data-value="M" data-s="M">M</button>
+                <button type="button" class="undrskin-size-btn size" data-value="L" data-s="L">L</button>
+                <button type="button" class="undrskin-size-btn size" data-value="XL" data-s="XL">XL</button>
+                <button type="button" class="undrskin-size-btn size" data-value="XXL" data-s="XXL">XXL</button>
+              </div>
             </div>
-          </div>
+          {% endunless %}
 
           <!-- Add to Bag CTA Button -->
-          <button type="submit" class="undrskin-add-to-bag-btn" {% unless current_variant.available %}disabled{% endunless %}>
+          <button type="submit" id="addBtn" class="undrskin-add-to-bag-btn" {% unless current_variant.available %}disabled{% endunless %}>
             <span>
               {% if current_variant.available %}
                 ADD TO BAG
@@ -182,38 +257,125 @@
 
   </div>
 
-  <!-- Exploded Technical Inspection Overlay (100dvh & safe area insets) -->
-  <div class="undrskin-exploded-modal" aria-hidden="true">
-    <div class="undrskin-exploded-header">
-      <h3 class="undrskin-exploded-title">Material & Construction Inspection</h3>
-      <button type="button" class="undrskin-exploded-close" aria-label="Close inspection overlay">&times;</button>
+  <!-- "WHAT'S INSIDE?" Technical Inspection Overlay -->
+  <div class="undrskin-exploded-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="undrskin-exploded-content">
+      <div class="undrskin-exploded-header">
+        <h3 class="undrskin-exploded-title">Material & Construction Inspection</h3>
+        <button type="button" class="undrskin-exploded-close" aria-label="Close inspection overlay">&times;</button>
+      </div>
+      
+      <div class="undrskin-exploded-body">
+        <div class="undrskin-schematic-card">
+          <div class="undrskin-schematic-badge">Bamboo Hipster Construction</div>
+          <p class="undrskin-schematic-sub">Interactive 4-layer comfort breakdown</p>
+        </div>
+
+        <div class="undrskin-annotation-grid">
+          <!-- Annotation 1: Main Fabric -->
+          <div class="undrskin-annotation-card">
+            <div class="undrskin-card-num">1</div>
+            <div>
+              <h4>Main Bamboo Viscose</h4>
+              <p>95% Organic Bamboo Viscose woven for ultra-soft, breathable skin contact.</p>
+            </div>
+          </div>
+
+          <!-- Annotation 2: Self Waistband -->
+          <div class="undrskin-annotation-card">
+            <div class="undrskin-card-num">2</div>
+            <div>
+              <h4>Self-Fabric Waistband</h4>
+              <p>Double-layered bamboo fabric holding firm without elastic digging or red marks.</p>
+            </div>
+          </div>
+
+          <!-- Annotation 3: Spandex Core -->
+          <div class="undrskin-annotation-card">
+            <div class="undrskin-card-num">3</div>
+            <div>
+              <h4>5% Spandex Elastic Matrix</h4>
+              <p>Micro-elastics providing 4-way flexibility that retains shape wear after wear.</p>
+            </div>
+          </div>
+
+          <!-- Annotation 4: Gusset -->
+          <div class="undrskin-annotation-card">
+            <div class="undrskin-card-num">4</div>
+            <div>
+              <h4>Breathable Hygiene Gusset</h4>
+              <p>Dual-layer moisture-wicking bamboo lining for all-day freshness.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    
-    <div class="undrskin-exploded-body">
-      <div class="undrskin-annotation-layer">
-        <!-- Annotation 1: Outer Fabric -->
-        <div class="undrskin-annotation-card" style="top: 18%; left: 12%;">
-          <h4>1. Main Fabric</h4>
-          <p>95% Bamboo Viscose woven for ultra-soft, seamless skin contact.</p>
-        </div>
+  </div>
 
-        <!-- Annotation 2: Waistband -->
-        <div class="undrskin-annotation-card" style="top: 22%; right: 12%;">
-          <h4>2. Self Waistband</h4>
-          <p>Double-layered bamboo fabric holding firm without elastic pinching.</p>
-        </div>
-
-        <!-- Annotation 3: Spandex Core -->
-        <div class="undrskin-annotation-card" style="bottom: 22%; left: 15%;">
-          <h4>3. 5% Spandex Elastic</h4>
-          <p>Micro-elastics providing 4-way flexibility that retains shape wear after wear.</p>
-        </div>
-
-        <!-- Annotation 4: Gusset -->
-        <div class="undrskin-annotation-card" style="bottom: 18%; right: 15%;">
-          <h4>4. Breathable Gusset</h4>
-          <p>Dual-layer breathable bamboo lining for all-day freshness.</p>
-        </div>
+  <!-- Size Guide Modal -->
+  <div class="undrskin-size-guide-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="undrskin-size-guide-content">
+      <div class="undrskin-size-guide-header">
+        <h3>Size Guide & Body Measurements</h3>
+        <button type="button" class="undrskin-size-guide-close" aria-label="Close size guide">&times;</button>
+      </div>
+      <div class="undrskin-size-guide-body">
+        <p>Measurements refer to body size, not garment dimensions. If between sizes, we recommend sizing up for a relaxed fit.</p>
+        <table class="undrskin-size-table">
+          <thead>
+            <tr>
+              <th>Size</th>
+              <th>Waist (in)</th>
+              <th>Hips (in)</th>
+              <th>Waist (cm)</th>
+              <th>Hips (cm)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>XS</strong></td>
+              <td>24" – 26"</td>
+              <td>34" – 36"</td>
+              <td>61 – 66 cm</td>
+              <td>86 – 91 cm</td>
+            </tr>
+            <tr>
+              <td><strong>S</strong></td>
+              <td>26" – 28"</td>
+              <td>36" – 38"</td>
+              <td>66 – 71 cm</td>
+              <td>91 – 97 cm</td>
+            </tr>
+            <tr class="is-highlight">
+              <td><strong>M</strong></td>
+              <td>28" – 30"</td>
+              <td>38" – 40"</td>
+              <td>71 – 76 cm</td>
+              <td>97 – 102 cm</td>
+            </tr>
+            <tr>
+              <td><strong>L</strong></td>
+              <td>30" – 33"</td>
+              <td>40" – 43"</td>
+              <td>76 – 84 cm</td>
+              <td>102 – 109 cm</td>
+            </tr>
+            <tr>
+              <td><strong>XL</strong></td>
+              <td>33" – 36"</td>
+              <td>43" – 46"</td>
+              <td>84 – 91 cm</td>
+              <td>109 – 117 cm</td>
+            </tr>
+            <tr>
+              <td><strong>XXL</strong></td>
+              <td>36" – 39"</td>
+              <td>46" – 49"</td>
+              <td>91 – 99 cm</td>
+              <td>117 – 124 cm</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

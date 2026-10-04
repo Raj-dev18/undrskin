@@ -24,268 +24,198 @@
   font-family: var(--us-font-sans);
   overflow-x: hidden;
   box-sizing: border-box;
+  padding: 3rem 0;
 }
 
 .undrskin-3d-product * {
   box-sizing: border-box;
 }
 
-/* --------------------------------------------------------------------------
-   Layout Grid & Container
-   -------------------------------------------------------------------------- */
 .undrskin-container {
-  max-width: 1360px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: clamp(1rem, 3vw, 2.5rem);
+  padding: 0 1.5rem;
 }
 
-/* Desktop Layout: Left 3D Viewer, Right Commerce Info */
+/* ---------------------------------------------------------- Layout Grid */
 .undrskin-hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-  gap: clamp(1.5rem, 4vw, 4rem);
-  align-items: start;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 3.5rem;
+  align-items: center;
 }
 
-/* Mobile Responsive Layout: Top Compact Info -> Middle 3D -> Bottom Purchase Controls */
-@media (max-width: 989px) {
-  .undrskin-hero-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .undrskin-mobile-top-info {
-    display: block;
-    order: 1;
-  }
-
-  .undrskin-3d-stage-wrapper {
-    order: 2;
-  }
-
-  .undrskin-details-panel {
-    order: 3;
-  }
+/* Mobile top header (hidden on desktop) */
+.undrskin-mobile-top-info {
+  display: none;
 }
 
-/* --------------------------------------------------------------------------
-   3D Stage Viewer
-   -------------------------------------------------------------------------- */
+.undrskin-eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(27, 23, 23, 0.65);
+  margin-bottom: 0.4rem;
+}
+
+.undrskin-product-title {
+  font-family: var(--us-font-display);
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  line-height: 1.1;
+  font-weight: 400;
+  margin: 0 0 1.25rem 0;
+  color: var(--us-dark);
+}
+
+/* --------------------------------------------------- Left Column: 3D Stage */
 .undrskin-3d-stage-wrapper {
-  position: relative;
   width: 100%;
-  border-radius: 16px;
-  overflow: hidden;
-  background: radial-gradient(circle at 50% 40%, rgba(241, 233, 223, 0.6) 0%, rgba(166, 199, 183, 0.85) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 16px 40px rgba(27, 23, 23, 0.06);
+  position: relative;
 }
 
 .undrskin-3d-stage {
   position: relative;
   width: 100%;
-  height: clamp(400px, 60vh, 650px);
-  display: block;
-}
-
-@media (max-width: 989px) {
-  .undrskin-3d-stage {
-    height: 55vh;
-    min-height: 360px;
-    max-height: 520px;
-  }
+  aspect-ratio: 1 / 1;
+  min-height: 380px;
+  background: radial-gradient(circle at 50% 45%, #B9C3BA 0%, #A6C7B7 70%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.06);
 }
 
 .undrskin-3d-canvas {
   width: 100%;
   height: 100%;
   display: block;
-  touch-action: none;
   cursor: grab;
+  touch-action: none;
 }
 
-.undrskin-3d-canvas:active {
+.undrskin-3d-canvas.is-drag {
   cursor: grabbing;
 }
 
-/* Fallback Product Image */
 .undrskin-fallback-image {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  padding: 2rem;
-  z-index: 1;
+  object-fit: cover;
   display: none;
+  pointer-events: none;
 }
 
-.undrskin-fallback-image.is-visible {
-  display: block;
-}
-
-/* Viewer Floating Controls Bar (Min 44px Touch Targets) */
-.undrskin-viewer-controls {
+/* Eye Button: Positioned INSIDE 3D viewer (top-right) */
+.undrskin-exploded-btn {
   position: absolute;
-  bottom: 1rem;
+  top: 1rem;
   right: 1rem;
   z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 0.35rem 0.5rem;
-  border-radius: var(--us-radius);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-}
-
-.undrskin-control-btn {
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: 50%;
-  background: transparent;
-  border: none;
-  color: var(--us-dark);
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: var(--us-transition);
-  padding: 0;
-}
-
-.undrskin-control-btn:hover {
-  background: rgba(27, 23, 23, 0.08);
-  color: var(--us-wine);
-}
-
-.undrskin-control-btn svg {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-}
-
-/* Exploded View Toggle Button (👁) */
-.undrskin-exploded-btn {
-  min-height: 44px;
-  padding: 0 1.1rem;
-  background: var(--us-dark);
-  color: #FFFFFF;
+  gap: 0.5rem;
+  padding: 0.55rem 1.05rem;
+  background: rgba(241, 233, 223, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(27, 23, 23, 0.15);
   border-radius: var(--us-radius);
-  border: none;
-  font-size: 0.76rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  color: var(--us-dark);
   cursor: pointer;
   transition: var(--us-transition);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
 .undrskin-exploded-btn:hover {
-  background: var(--us-wine);
+  background: #FFFFFF;
   transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
-/* --------------------------------------------------------------------------
-   Product Details Panel (Right Column)
-   -------------------------------------------------------------------------- */
+.undrskin-eye-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* ----------------------------------------------- Right Column: Details Panel */
 .undrskin-details-panel {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-}
-
-.undrskin-eyebrow {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--us-wine);
-}
-
-.undrskin-product-title {
-  font-family: var(--us-font-display);
-  font-size: clamp(2rem, 3.5vw, 3rem);
-  font-weight: 400;
-  line-height: 1.1;
-  color: var(--us-dark);
-  margin: 0;
+  gap: 1.5rem;
 }
 
 .undrskin-price-wrapper {
   display: flex;
-  align-items: baseline;
-  gap: 0.8rem;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 1.35rem;
+  font-weight: 500;
 }
 
 .undrskin-price {
   font-family: var(--us-font-display);
   font-size: 1.6rem;
-  font-weight: 600;
   color: var(--us-dark);
 }
 
 .undrskin-compare-price {
-  font-size: 1.1rem;
   text-decoration: line-through;
   color: rgba(27, 23, 23, 0.45);
+  font-size: 1.1rem;
 }
 
 .undrskin-badge-save {
-  padding: 0.2rem 0.6rem;
-  background: var(--us-wine);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.25rem 0.6rem;
+  background-color: var(--us-wine);
   color: #FFFFFF;
-  font-size: 0.68rem;
-  font-weight: 600;
   border-radius: var(--us-radius);
-  letter-spacing: 0.05em;
 }
 
-.undrskin-description {
-  font-size: 0.9rem;
+.undrskin-description p {
+  font-size: 0.95rem;
   line-height: 1.6;
-  color: rgba(27, 23, 23, 0.78);
+  color: rgba(27, 23, 23, 0.8);
+  margin: 0;
 }
 
-/* --------------------------------------------------------------------------
-   Variant Selectors (Colour & Size)
-   -------------------------------------------------------------------------- */
+/* ---------------------------------------------------- Swatches & Options */
 .undrskin-option-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .undrskin-option-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
-.undrskin-color-swatches {
+.undrskin-swatch-group {
   display: flex;
   gap: 0.75rem;
-  flex-wrap: wrap;
+  align-items: center;
 }
 
 .undrskin-swatch-btn {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 2px solid transparent;
-  padding: 3px;
-  cursor: pointer;
+  padding: 2px;
   background: transparent;
+  cursor: pointer;
   transition: var(--us-transition);
 }
 
@@ -294,13 +224,19 @@
   height: 100%;
   border-radius: 50%;
   display: block;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.2);
 }
 
-.undrskin-swatch-btn.is-active {
+.undrskin-swatch-btn:hover {
+  transform: scale(1.1);
+}
+
+.undrskin-swatch-btn.is-active,
+.undrskin-swatch-btn.is-on {
   border-color: var(--us-dark);
-  transform: scale(1.08);
 }
 
+/* ------------------------------------------------------- Size Options */
 .undrskin-size-options {
   display: flex;
   gap: 0.5rem;
@@ -308,65 +244,68 @@
 }
 
 .undrskin-size-btn {
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0 0.9rem;
-  border: 1px solid rgba(27, 23, 23, 0.25);
+  min-width: 48px;
+  height: 40px;
+  padding: 0 0.85rem;
+  border: 1px solid rgba(27, 23, 23, 0.2);
   border-radius: 8px;
   background: transparent;
-  color: var(--us-dark);
   font-size: 0.85rem;
   font-weight: 600;
+  color: var(--us-dark);
   cursor: pointer;
   transition: var(--us-transition);
 }
 
 .undrskin-size-btn:hover {
   border-color: var(--us-dark);
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.3);
 }
 
-.undrskin-size-btn.is-active {
+.undrskin-size-btn.is-active,
+.undrskin-size-btn.is-on {
   background: var(--us-dark);
   color: #FFFFFF;
   border-color: var(--us-dark);
 }
 
 .undrskin-size-guide-trigger {
-  font-size: 0.78rem;
-  color: var(--us-wine);
-  text-decoration: underline;
-  cursor: pointer;
   background: none;
   border: none;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  color: var(--us-dark);
+  cursor: pointer;
+  opacity: 0.8;
   padding: 0;
 }
 
-/* Add to Bag CTA Button */
+.undrskin-size-guide-trigger:hover {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------- Add to Bag Button */
 .undrskin-add-to-bag-btn {
   width: 100%;
-  min-height: 48px;
-  padding: 1.1rem 2rem;
+  height: 54px;
   background: var(--us-dark);
   color: #FFFFFF;
   border: none;
   border-radius: var(--us-radius);
   font-size: 0.9rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(27, 23, 23, 0.15);
   transition: var(--us-transition);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin-top: 0.5rem;
+  box-shadow: 0 8px 24px rgba(27, 23, 23, 0.15);
 }
 
-.undrskin-add-to-bag-btn:hover {
-  background: var(--us-wine);
+.undrskin-add-to-bag-btn:hover:not(:disabled) {
+  background: #332d2d;
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(126, 22, 38, 0.25);
+  box-shadow: 0 12px 28px rgba(27, 23, 23, 0.22);
 }
 
 .undrskin-add-to-bag-btn:disabled {
@@ -375,238 +314,263 @@
   transform: none;
 }
 
-/* --------------------------------------------------------------------------
-   Exploded View Modal / Overlay (100dvh + safe area insets)
-   -------------------------------------------------------------------------- */
-.undrskin-exploded-modal {
-  position: fixed;
-  inset: 0;
-  height: 100dvh;
-  z-index: 9999;
-  background: rgba(14, 11, 11, 0.92);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  display: flex;
-  flex-direction: column;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.undrskin-exploded-modal.is-open {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.undrskin-exploded-header {
-  padding: 1.25rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  color: #FFFFFF;
-}
-
-.undrskin-exploded-title {
-  font-family: var(--us-font-display);
-  font-size: 1.4rem;
-  margin: 0;
-}
-
-.undrskin-exploded-close {
-  min-width: 44px;
-  min-height: 44px;
-  background: none;
-  border: none;
-  color: #FFFFFF;
-  font-size: 1.8rem;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--us-transition);
-}
-
-.undrskin-exploded-close:hover {
-  transform: rotate(90deg);
-  color: var(--us-rose);
-}
-
-.undrskin-exploded-body {
-  position: relative;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-
-.undrskin-annotation-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.undrskin-annotation-card {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  padding: 0.8rem 1.1rem;
-  border-radius: 8px;
-  max-width: 220px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  transform: translateY(10px);
-  opacity: 0;
-  transition: all 0.5s ease;
-}
-
-.undrskin-exploded-modal.is-open .undrskin-annotation-card {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.undrskin-annotation-card h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--us-wine);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.undrskin-annotation-card p {
-  margin: 0;
-  font-size: 0.76rem;
-  line-height: 1.4;
-  color: var(--us-dark);
-}
-
-/* --------------------------------------------------------------------------
-   Mobile Compact Accordions
-   -------------------------------------------------------------------------- */
+/* ---------------------------------------------------------- Accordions */
 .undrskin-accordions-wrapper {
-  margin-top: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  border-top: 1px solid rgba(27, 23, 23, 0.12);
+  margin-top: 1rem;
 }
 
 .undrskin-accordion-item {
-  border: 1px solid rgba(27, 23, 23, 0.15);
-  border-radius: 10px;
-  overflow: hidden;
-  background: rgba(241, 233, 223, 0.4);
-  transition: var(--us-transition);
+  border-bottom: 1px solid rgba(27, 23, 23, 0.12);
 }
 
 .undrskin-accordion-header {
   width: 100%;
-  min-height: 44px;
-  padding: 0.85rem 1.1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: none;
+  padding: 1rem 0;
+  background: transparent;
   border: none;
-  text-align: left;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--us-dark);
   cursor: pointer;
 }
 
-.undrskin-accordion-icon {
-  font-size: 1.2rem;
-  transition: transform 0.3s ease;
+.undrskin-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: rgba(27, 23, 23, 0.75);
+}
+
+.undrskin-accordion-item.is-active .undrskin-accordion-content {
+  max-height: 140px;
+  padding-bottom: 1rem;
 }
 
 .undrskin-accordion-item.is-active .undrskin-accordion-icon {
   transform: rotate(45deg);
 }
 
-.undrskin-accordion-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease;
-  padding: 0 1.1rem;
+.undrskin-accordion-icon {
+  font-size: 1.2rem;
+  transition: transform 0.25s ease;
 }
 
-.undrskin-accordion-item.is-active .undrskin-accordion-content {
-  max-height: 250px;
-  padding-bottom: 0.9rem;
+/* ---------------------------------- Modals: What's Inside & Size Guide */
+.undrskin-exploded-modal,
+.undrskin-size-guide-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(27, 23, 23, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  padding: 1.25rem;
 }
 
-.undrskin-accordion-content p {
+.undrskin-exploded-modal.is-open,
+.undrskin-size-guide-modal.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.undrskin-exploded-content,
+.undrskin-size-guide-content {
+  background: var(--us-cream);
+  color: var(--us-dark);
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 20px;
+  padding: 1.75rem;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  transform: scale(0.95);
+  transition: transform 0.3s ease;
+}
+
+.undrskin-exploded-modal.is-open .undrskin-exploded-content,
+.undrskin-size-guide-modal.is-open .undrskin-size-guide-content {
+  transform: scale(1);
+}
+
+.undrskin-exploded-header,
+.undrskin-size-guide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(27, 23, 23, 0.12);
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.undrskin-exploded-title,
+.undrskin-size-guide-header h3 {
+  font-family: var(--us-font-display);
+  font-size: 1.4rem;
+  margin: 0;
+  font-weight: 400;
+}
+
+.undrskin-exploded-close,
+.undrskin-size-guide-close {
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: var(--us-dark);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.undrskin-schematic-card {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(27, 23, 23, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.undrskin-schematic-badge {
+  font-family: var(--us-font-display);
+  font-size: 1.2rem;
+  color: var(--us-dark);
+}
+
+.undrskin-schematic-sub {
+  font-size: 0.82rem;
+  color: rgba(27, 23, 23, 0.6);
+  margin: 0.25rem 0 0 0;
+}
+
+.undrskin-annotation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.undrskin-annotation-card {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  background: #FFFFFF;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(27, 23, 23, 0.08);
+}
+
+.undrskin-annotation-card h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.undrskin-annotation-card p {
   margin: 0;
   font-size: 0.82rem;
-  line-height: 1.5;
-  color: rgba(27, 23, 23, 0.8);
+  color: rgba(27, 23, 23, 0.7);
+  line-height: 1.45;
 }
 
-/* --------------------------------------------------------------------------
-   Product Collection Grid Section (3 Columns Desktop / 2 Columns Mobile)
-   -------------------------------------------------------------------------- */
+.undrskin-card-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--us-wine);
+  color: #FFFFFF;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------- Size Guide Table */
+.undrskin-size-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.88rem;
+}
+
+.undrskin-size-table th,
+.undrskin-size-table td {
+  padding: 0.65rem 0.75rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(27, 23, 23, 0.1);
+}
+
+.undrskin-size-table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.undrskin-size-table tr.is-highlight {
+  background: rgba(185, 112, 115, 0.15);
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------- Collection Grid */
 .undrskin-collection-section {
-  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2.5rem);
-  background: var(--us-cream);
-  border-top: 1px solid rgba(27, 23, 23, 0.1);
+  padding: 4rem 0;
+  background: #F1E9DF;
+  color: var(--us-dark);
 }
 
 .undrskin-collection-header {
   margin-bottom: 2rem;
-  text-align: center;
 }
 
 .undrskin-collection-title {
   font-family: var(--us-font-display);
-  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-size: 2rem;
   margin: 0 0 0.5rem 0;
-  color: var(--us-dark);
+  font-weight: 400;
 }
 
-/* Desktop: 3 Columns Grid */
 .undrskin-product-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: clamp(1rem, 2.5vw, 2rem);
-}
-
-/* Mobile & Tablet: 2 Columns Grid */
-@media (max-width: 989px) {
-  .undrskin-product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
+  gap: 1.5rem;
 }
 
 .undrskin-card {
-  background: #FFFFFF;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(27, 23, 23, 0.08);
-  transition: var(--us-transition);
-  display: flex;
-  flex-direction: column;
   text-decoration: none;
   color: inherit;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #FFFFFF;
+  transition: var(--us-transition);
 }
 
 .undrskin-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
 }
 
 .undrskin-card-image-wrapper {
-  position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5;
-  background: #F8F5F1;
+  aspect-ratio: 1 / 1;
+  background: #E8DFD5;
   overflow: hidden;
 }
 
@@ -614,29 +578,79 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease;
-}
-
-.undrskin-card:hover .undrskin-card-image-wrapper img {
-  transform: scale(1.05);
 }
 
 .undrskin-card-details {
-  padding: 0.9rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  padding: 1rem;
 }
 
 .undrskin-card-title {
   font-family: var(--us-font-display);
-  font-size: 1rem;
-  margin: 0;
-  color: var(--us-dark);
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem 0;
+  font-weight: 400;
 }
 
 .undrskin-card-price {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--us-wine);
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* ---------------------------------------------------- Responsive Styles */
+@media (max-width: 1024px) {
+  .undrskin-hero-grid {
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .undrskin-3d-product {
+    padding: 1.5rem 0;
+  }
+
+  .undrskin-mobile-top-info {
+    display: block !important;
+  }
+
+  .undrskin-desktop-only {
+    display: none !important;
+  }
+
+  .undrskin-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .undrskin-3d-stage {
+    min-height: 320px;
+    aspect-ratio: 1 / 1;
+    border-radius: 16px;
+  }
+
+  .undrskin-exploded-btn {
+    top: 0.75rem;
+    right: 0.75rem;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.7rem;
+  }
+
+  .undrskin-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .undrskin-container {
+    padding: 0 1rem;
+  }
+
+  .undrskin-3d-stage {
+    min-height: 280px;
+  }
+
+  .undrskin-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
 }
