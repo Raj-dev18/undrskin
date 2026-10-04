@@ -6,6 +6,7 @@ import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CartDrawer } from '@/components/cart/cart-drawer';
+import { CheckoutModal } from '@/components/checkout/checkout-modal';
 import { getCollections } from '@/lib/shopify';
 
 export const dynamic = 'force-dynamic';
@@ -24,19 +25,19 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'UNDRSKIN — Second-Skin Luxury Undergarments',
+  title: 'UndrSkin — Bamboo Essentials',
   description:
-    'Architectural second-skin foundation pieces, minimalist slips, modal camisoles, and pure silk intimates engineered for absolute comfort and sculpted elegance.',
+    'Skin-first comfort with luxuriously soft bamboo essentials designed for everyday movement.',
   keywords: ['luxury lingerie', 'minimalist underwear', 'silk slips', 'modal garments', 'second skin', 'UNDRSKIN'],
   authors: [{ name: 'UNDRSKIN Studio' }],
-  metadataBase: new URL('https://undrskin.studio'),
+  metadataBase: new URL('https://undrskin.in'),
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://undrskin.studio',
-    siteName: 'UNDRSKIN Studio',
-    title: 'UNDRSKIN — Second-Skin Luxury Undergarments',
-    description: 'Architectural second-skin foundation pieces crafted for absolute comfort and sculpted elegance.',
+    url: 'https://undrskin.in',
+    siteName: 'UndrSkin',
+    title: 'UndrSkin — Bamboo Essentials',
+    description: 'Skin-first comfort with luxuriously soft bamboo essentials designed for everyday movement.',
   },
 };
 
@@ -48,14 +49,15 @@ export default async function RootLayout({
   const collections = await getCollections();
 
   return (
-    <html lang="en" className={`${inter.variable} ${spaceMono.variable} dark`}>
-      <body className="bg-[#0c0c0c] text-neutral-100 font-sans antialiased min-h-screen flex flex-col selection:bg-neutral-200 selection:text-black">
+    <html lang="en" className={`${inter.variable} ${spaceMono.variable}`}>
+      <body className="bg-[#A6C7B7] text-[#302824] font-sans antialiased min-h-screen flex flex-col selection:bg-[#B96F73] selection:text-white">
         <CartProvider>
           <AnnouncementBar />
           <Header collections={collections} />
           <main className="flex-1 w-full">{children}</main>
           <Footer collections={collections} />
           <CartDrawer />
+          <CheckoutModal />
         </CartProvider>
       </body>
     </html>
