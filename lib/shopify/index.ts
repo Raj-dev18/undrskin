@@ -7,11 +7,15 @@ import { enrichProductsWithReviews } from '@/lib/judgeme';
 ============================================================ */
 
 const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || '';
+const SHOPIFY_SHOP = process.env.SHOPIFY_SHOP || '';
 const SHOPIFY_CLIENT_ID = process.env.SHOPIFY_CLIENT_ID || '';
 const SHOPIFY_CLIENT_SECRET = process.env.SHOPIFY_CLIENT_SECRET || '';
+const SHOPIFY_ADMIN_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || '';
 const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION || '2026-07';
 
-const SHOP_DOMAIN = SHOPIFY_STORE_DOMAIN.replace(/^https?:\/\//, '').replace(/\/$/, '');
+const SHOP_DOMAIN = (SHOPIFY_SHOP
+  ? `${SHOPIFY_SHOP.replace(/\.myshopify\.com$/i, '').replace(/^https?:\/\//, '').replace(/\/$/, '')}.myshopify.com`
+  : SHOPIFY_STORE_DOMAIN.replace(/^https?:\/\//, '').replace(/\/$/, ''));
 
 let cachedToken: string | null = null;
 let tokenExpiresAt = 0;
@@ -30,11 +34,15 @@ function isDynamicServerError(err: any): boolean {
 ============================================================ */
 
 async function getAdminAccessToken(): Promise<string> {
-  if (!SHOP_DOMAIN || !SHOPIFY_CLIENT_ID || !SHOPIFY_CLIENT_SECRET) {
+  if (!SHOP_DOMAIN || (!SHOPIFY_ADMIN_ACCESS_TOKEN && (!SHOPIFY_CLIENT_ID || !SHOPIFY_CLIENT_SECRET))) {
     throw new Error(
-      'Shopify environment variables missing (SHOPIFY_STORE_DOMAIN, SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET)'
+      'Shopify environment variables missing (SHOPIFY_SHOP or SHOPIFY_STORE_DOMAIN plus Shopify credentials)'
     );
   }
+
+  // A custom app Admin API token is the most reliable server-side option and
+  // avoids the OAuth endpoint's browser/Cloudflare verification challenge.
+  if (SHOPIFY_ADMIN_ACCESS_TOKEN && !SHOPIFY_ADMIN_ACCESS_TOKEN.startsWith('your_')) return SHOPIFY_ADMIN_ACCESS_TOKEN;
 
   if (cachedToken && Date.now() < tokenExpiresAt - 60000) {
     return cachedToken!;
@@ -427,6 +435,67 @@ const COLLECTION_BY_HANDLE_QUERY = `
     }
   }
 `;
+
+export type ShopifyPolicy = { title: string; body: string };
+export type ShopifyPolicies = Record<
+  'privacyPolicy' | 'refundPolicy' | 'shippingPolicy' | 'termsOfService' | 'legalNotice' | 'contactInformation',
+  ShopifyPolicy | null
+>;
+
+const POLICY_ENDPOINT_MAP: Record<keyof ShopifyPolicies, string> = {
+  privacyPolicy: 'privacy-policy',
+  refundPolicy: 'refund-policy',
+  shippingPolicy: 'shipping-policy',
+  termsOfService: 'terms-of-service',
+  legalNotice: 'legal-notice',
+  contactInformation: 'contact-information',
+};
+
+export async function getPolicies(): Promise<ShopifyPolicies> {
+  const empty: ShopifyPolicies = {
+    privacyPolicy: null,
+    refundPolicy: null,
+    shippingPolicy: null,
+    termsOfService: null,
+    legalNotice: null,
+    contactInformation: null,
+  };
+
+  try {
+    const keys = Object.keys(POLICY_ENDPOINT_MAP) as (keyof ShopifyPolicies)[];
+    const results = await Promise.allSettled(
+      keys.map(async (key) => {
+        const handle = POLICY_ENDPOINT_MAP[key];
+        const res = await fetch(`https://${SHOP_DOMAIN}/policies/${handle}.json`, {
+          next: { revalidate: 3600 },
+        });
+        if (!res.ok) return { key, policy: null };
+        const data = await res.json();
+        if (data?.policy) {
+          return {
+            key,
+            policy: {
+              title: data.policy.title || '',
+              body: data.policy.body || '',
+            },
+          };
+        }
+        return { key, policy: null };
+      })
+    );
+
+    const policies = { ...empty };
+    for (const r of results) {
+      if (r.status === 'fulfilled' && r.value.policy) {
+        policies[r.value.key] = r.value.policy;
+      }
+    }
+    return policies;
+  } catch (error) {
+    console.error('getPolicies failed:', error instanceof Error ? error.message : error);
+    return empty;
+  }
+}
 
 const formatPrice = (amount: number, currencyCode: string) => {
   const locale = currencyCode === 'INR' ? 'en-IN' : 'en-US';
