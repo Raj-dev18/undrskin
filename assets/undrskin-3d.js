@@ -1,11 +1,34 @@
 /* ==========================================================================
    UNDRSKIN 3D SHOPIFY ENGINE (assets/undrskin-3d.js)
-   Restored from authoritative public/undrskin-3d-demo.html 3D engine.
-   100% full Base64 WebP textures, GLSL shaders, rotational inertia & Shopify API.
+   Authoritative 3D Cloth Viewer with Full Lifecycle & State Management
    ========================================================================== */
 
 (function () {
   'use strict';
+
+  /* -------------------------------------------------- Global Scroll Lock Manager */
+  if (!window._undrskinScrollLockManager) {
+    window._undrskinScrollLockManager = {
+      activeLocks: 0,
+      originalOverflow: null,
+      acquire: function () {
+        if (this.activeLocks === 0) {
+          this.originalOverflow = document.body.style.overflow;
+          document.body.style.overflow = 'hidden';
+        }
+        this.activeLocks++;
+      },
+      release: function () {
+        if (this.activeLocks > 0) {
+          this.activeLocks--;
+        }
+        if (this.activeLocks === 0) {
+          document.body.style.overflow = this.originalOverflow !== null ? this.originalOverflow : '';
+          this.originalOverflow = null;
+        }
+      }
+    };
+  }
 
   /* --------------------------------------------------------------------- data */
   var TEX = {
@@ -121,10 +144,14 @@
     }
     var maps = COLOURWAYS.map(function (c) { return tex(c.tex); });
 
+    /* Fix #6: Initialize renderer uniforms with initial active colour */
+    var initIdx = opts.initialColourIndex || 0;
+    if (initIdx < 0 || initIdx >= COLOURWAYS.length) initIdx = 0;
+
     var uni = {
       uTime: { value: 0 }, uSway: { value: opts.sway || 0.75 }, uHover: { value: 0 },
       uPointer: { value: new THREE.Vector2(0, 0) },
-      uA: { value: maps[0] }, uB: { value: maps[0] }, uMix: { value: 0 },
+      uA: { value: maps[initIdx] }, uB: { value: maps[initIdx] }, uMix: { value: 0 },
       uWipe: { value: new THREE.Vector2(0.5, 0.5) },
       uGrain: { value: 0.07 }, uExp: { value: opts.exp || 1.1 },
       uRim: { value: new THREE.Color(opts.rim || 0x5a3a34) }
@@ -189,7 +216,7 @@
 
     var st = {
       visible: true, prog: 0, target: { rx: 0, ry: 0, px: 0, py: 0 },
-      cur: { rx: 0, ry: 0, px: 0, py: 0 }, spin: 0, spinV: 0, idx: 0, mixing: false,
+      cur: { rx: 0, ry: 0, px: 0, py: 0 }, spin: 0, spinV: 0, idx: initIdx, mixing: false,
       offX: 0, want: -1, wantWipe: null, dragging: false, hover: false
     };
 
@@ -292,9 +319,6 @@
           }
           if (renderer) {
             renderer.dispose();
-            if (renderer.domElement && renderer.domElement.parentNode) {
-              // canvas stays in DOM, context freed
-            }
           }
         } catch (err) {
           console.warn('Three.js cleanup error:', err);
@@ -310,20 +334,60 @@
     var canvas = container.querySelector('.undrskin-3d-canvas');
     if (!canvas) return;
 
-    // Check if Three.js is ready
+    var isSectionCleanedUp = false;
+
+    /* Fix #2: Tracked Three.js Retry Interval */
     if (!window.THREE) {
-      console.warn('Three.js is not loaded yet. Delaying UndrSkin initialization.');
-      var checkInterval = setInterval(function () {
+      if (container._undrskinCheckInterval) {
+        clearInterval(container._undrskinCheckInterval);
+        container._undrskinCheckInterval = null;
+      }
+      var retryInterval = setInterval(function () {
+        if (isSectionCleanedUp) {
+          clearInterval(retryInterval);
+          if (container._undrskinCheckInterval === retryInterval) {
+            container._undrskinCheckInterval = null;
+          }
+          return;
+        }
         if (window.THREE) {
-          clearInterval(checkInterval);
+          clearInterval(retryInterval);
+          if (container._undrskinCheckInterval === retryInterval) {
+            container._undrskinCheckInterval = null;
+          }
           initUndrskin3DSection(container);
         }
       }, 100);
+
+      container._undrskinCheckInterval = retryInterval;
       return;
     }
 
+    /* Fix #6: Determine initial active colour index from Liquid UI */
+    var initialActiveSwatch = container.querySelector('.undrskin-swatch-btn.is-active');
+    var initialColourIndex = 0;
+    if (initialActiveSwatch) {
+      var cAttr = initialActiveSwatch.getAttribute('data-c');
+      if (cAttr !== null) {
+        var parsedIdx = parseInt(cAttr, 10);
+        if (!isNaN(parsedIdx) && parsedIdx >= 0 && parsedIdx < COLOURWAYS.length) {
+          initialColourIndex = parsedIdx;
+        }
+      }
+    }
+
     var stageInstance = makeStage(canvas, {
-      drag: true, haze: true, motes: 60, sway: 0.75, segs: [40, 28], width: 3.05, z: 5.6, dpr: 2, exp: 1.1, rim: 0x5a3a34
+      drag: true,
+      haze: true,
+      motes: 60,
+      sway: 0.75,
+      segs: [40, 28],
+      width: 3.05,
+      z: 5.6,
+      dpr: 2,
+      exp: 1.1,
+      rim: 0x5a3a34,
+      initialColourIndex: initialColourIndex
     });
 
     if (!stageInstance) {
@@ -335,11 +399,16 @@
 
     container.dataset.undrskinInitialized = 'true';
 
-    /* animation loop */
+    /* State & Timers */
     var animId = null;
     var lastTime = performance.now();
     var isVisible = true;
+    var cartTimerId = null;            /* Fix #4: Cart Timer ID */
+    var currentCartRequestId = 0;      /* Fix #4: Cart Request Token */
+    var explodedModalLock = false;     /* Fix #5: Scroll Lock State */
+    var sizeGuideModalLock = false;    /* Fix #5: Scroll Lock State */
 
+    /* IntersectionObserver */
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         isVisible = entry.isIntersecting;
@@ -347,7 +416,9 @@
     }, { rootMargin: '120px' });
     observer.observe(canvas);
 
+    /* Animation Loop */
     function loop(now) {
+      if (isSectionCleanedUp) return;
       var dt = Math.min(0.05, (now - lastTime) / 1000);
       lastTime = now;
       if (isVisible && stageInstance) {
@@ -357,62 +428,60 @@
     }
     animId = requestAnimationFrame(loop);
 
-    /* resize handler */
-    function onResize() {
-      if (stageInstance) stageInstance.resize();
+    /* Fix #1: Named Event Listener Handlers */
+    function handleResize() {
+      if (!isSectionCleanedUp && stageInstance) stageInstance.resize();
     }
-    window.addEventListener('resize', onResize);
 
-    /* pointer tilt */
-    function onPointerMove(e) {
+    function handlePointerMove(e) {
+      if (isSectionCleanedUp || !canvas || !stageInstance) return;
       var rect = canvas.getBoundingClientRect();
       var cx = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
       var cy = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
       var inside = cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom;
       var vx = ((cx - rect.left) / rect.width) * 2 - 1;
       var vy = ((cy - rect.top) / rect.height) * 2 - 1;
-      if (stageInstance) {
-        stageInstance.pointer(clamp(vx, -1.4, 1.4), -clamp(vy, -1.4, 1.4), inside);
-      }
+      stageInstance.pointer(clamp(vx, -1.4, 1.4), -clamp(vy, -1.4, 1.4), inside);
     }
-    window.addEventListener('mousemove', onPointerMove, { passive: true });
 
-    /* rotational inertia drag */
     var dragging = false;
     var lastX = 0;
 
-    function dstart(x) {
+    function handleDStart(e) {
+      if (isSectionCleanedUp || !stageInstance) return;
+      var clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
       dragging = true;
-      lastX = x;
+      lastX = clientX;
       canvas.classList.add('is-drag');
-      if (stageInstance) stageInstance.setDragging(true);
+      stageInstance.setDragging(true);
     }
 
-    function dmove(x) {
-      if (!dragging || !stageInstance) return;
-      stageInstance.spinBy((x - lastX) * 0.012);
-      lastX = x;
+    function handleDMove(e) {
+      if (isSectionCleanedUp || !dragging || !stageInstance) return;
+      var clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+      stageInstance.spinBy((clientX - lastX) * 0.012);
+      lastX = clientX;
     }
 
-    function dend() {
+    function handleDEnd() {
+      if (isSectionCleanedUp) return;
       dragging = false;
-      canvas.classList.remove('is-drag');
+      if (canvas) canvas.classList.remove('is-drag');
       if (stageInstance) stageInstance.setDragging(false);
     }
 
-    canvas.addEventListener('mousedown', function (e) { dstart(e.clientX); });
-    window.addEventListener('mousemove', function (e) { dmove(e.clientX); }, { passive: true });
-    window.addEventListener('mouseup', dend);
+    /* Bind Canvas & Window Listeners */
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('mousemove', handlePointerMove, { passive: true });
+    canvas.addEventListener('mousedown', handleDStart);
+    window.addEventListener('mousemove', handleDMove, { passive: true });
+    window.addEventListener('mouseup', handleDEnd);
 
-    canvas.addEventListener('touchstart', function (e) {
-      if (e.touches && e.touches[0]) dstart(e.touches[0].clientX);
-    }, { passive: true });
-    canvas.addEventListener('touchmove', function (e) {
-      if (e.touches && e.touches[0]) dmove(e.touches[0].clientX);
-    }, { passive: true });
-    canvas.addEventListener('touchend', dend);
+    canvas.addEventListener('touchstart', handleDStart, { passive: true });
+    canvas.addEventListener('touchmove', handleDMove, { passive: true });
+    canvas.addEventListener('touchend', handleDEnd);
 
-    /* variant JSON & option matching */
+    /* Variant JSON & Option Matching */
     var variantsData = [];
     var variantsScript = container.querySelector('[data-product-variants-json]');
     if (variantsScript) {
@@ -440,6 +509,8 @@
 
     /* Exact option matching for Shopify variants */
     function updateVariant() {
+      if (isSectionCleanedUp) return;
+
       var activeColorBtn = container.querySelector('.undrskin-swatch-btn.is-active');
       var activeSizeBtn = container.querySelector('.undrskin-size-btn.is-active');
 
@@ -502,11 +573,13 @@
       }
     }
 
-    /* Swatch click handler */
+    /* Named Swatch Click Handler */
+    var swatchClickHandlers = [];
     colorSwatches.forEach(function (swatch) {
-      swatch.addEventListener('click', function () {
-        colorSwatches.forEach(function (s) { s.classList.remove('is-active'); });
-        swatch.classList.add('is-active');
+      function handleSwatchClick() {
+        if (isSectionCleanedUp) return;
+        colorSwatches.forEach(function (s) { s.classList.remove('is-active', 'is-on'); });
+        swatch.classList.add('is-active', 'is-on');
 
         var idxStr = swatch.getAttribute('data-c');
         var idx = idxStr !== null ? parseInt(idxStr, 10) : 0;
@@ -520,91 +593,120 @@
         }
 
         updateVariant();
-      });
+      }
+      swatch.addEventListener('click', handleSwatchClick);
+      swatchClickHandlers.push({ element: swatch, handler: handleSwatchClick });
     });
 
-    /* Size button handler */
+    /* Named Size Click Handler */
+    var sizeClickHandlers = [];
     sizeBtns.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        if (btn.disabled) return;
-        sizeBtns.forEach(function (b) { b.classList.remove('is-active'); });
-        btn.classList.add('is-active');
+      function handleSizeClick() {
+        if (isSectionCleanedUp || btn.disabled) return;
+        sizeBtns.forEach(function (b) { b.classList.remove('is-active', 'is-on'); });
+        btn.classList.add('is-active', 'is-on');
         updateVariant();
-      });
+      }
+      btn.addEventListener('click', handleSizeClick);
+      sizeClickHandlers.push({ element: btn, handler: handleSizeClick });
     });
 
-    // Run initial variant match
+    // Initial variant match
     updateVariant();
 
-    /* Cart AJAX submission with HTTP error handling */
+    /* Cart Form Submission */
     var form = container.querySelector('.undrskin-variant-form');
-    if (form) {
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
 
-        var variantId = selectedVariantInput ? selectedVariantInput.value : null;
-        if (!variantId) {
-          alert('Please select a valid product variant.');
-          return;
-        }
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      if (isSectionCleanedUp) return;
 
-        if (addToBagBtn) addToBagBtn.disabled = true;
-        var btnSpan = addToBagBtn ? (addToBagBtn.querySelector('span') || addToBagBtn) : null;
-        if (btnSpan) btnSpan.textContent = 'ADDING...';
+      var variantId = selectedVariantInput ? selectedVariantInput.value : null;
+      if (!variantId) {
+        alert('Please select a valid product variant.');
+        return;
+      }
 
-        var cartUrl = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root ? window.Shopify.routes.root : '/') + 'cart/add.js';
+      currentCartRequestId++;
+      var thisRequestId = currentCartRequestId;
 
-        fetch(cartUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({ id: variantId, quantity: 1 })
+      if (cartTimerId) {
+        clearTimeout(cartTimerId);
+        cartTimerId = null;
+      }
+
+      if (addToBagBtn) addToBagBtn.disabled = true;
+      var btnSpan = addToBagBtn ? (addToBagBtn.querySelector('span') || addToBagBtn) : null;
+      if (btnSpan) btnSpan.textContent = 'ADDING...';
+
+      var cartUrl = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root ? window.Shopify.routes.root : '/') + 'cart/add.js';
+
+      fetch(cartUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ id: variantId, quantity: 1 })
+      })
+        .then(function (res) {
+          if (!res.ok) {
+            return res.json().then(function (errData) {
+              throw new Error(errData.description || errData.message || 'Could not add product to bag.');
+            });
+          }
+          return res.json();
         })
-          .then(function (res) {
-            if (!res.ok) {
-              return res.json().then(function (errData) {
-                throw new Error(errData.description || errData.message || 'Could not add product to bag.');
-              });
-            }
-            return res.json();
-          })
-          .then(function (item) {
-            if (btnSpan) btnSpan.textContent = 'ADDED TO BAG ✓';
-            setTimeout(function () {
-              if (btnSpan) btnSpan.textContent = 'ADD TO BAG';
-              if (addToBagBtn) addToBagBtn.disabled = false;
-            }, 2000);
+        .then(function (item) {
+          /* Fix #4: Check stale request & section cleanup */
+          if (isSectionCleanedUp || thisRequestId !== currentCartRequestId) return;
 
-            // Dispatch custom cart events for Shopify theme integration
-            document.dispatchEvent(new CustomEvent('cart:updated', { detail: { item: item } }));
-            document.dispatchEvent(new CustomEvent('cart:refresh'));
-            if (window.Shopify && typeof window.Shopify.onItemAdded === 'function') {
-              window.Shopify.onItemAdded(item);
-            }
-          })
-          .catch(function (err) {
-            console.error('Cart add error:', err);
-            if (btnSpan) btnSpan.textContent = err.message || 'ERROR ADDING TO BAG';
-            setTimeout(function () {
-              if (btnSpan) btnSpan.textContent = 'ADD TO BAG';
-              if (addToBagBtn) addToBagBtn.disabled = false;
-            }, 2500);
-          });
-      });
+          if (btnSpan) btnSpan.textContent = 'ADDED TO BAG ✓';
+
+          cartTimerId = setTimeout(function () {
+            cartTimerId = null;
+            if (isSectionCleanedUp || thisRequestId !== currentCartRequestId) return;
+            /* Re-check current selected variant state instead of blind enable */
+            updateVariant();
+          }, 2000);
+
+          document.dispatchEvent(new CustomEvent('cart:updated', { detail: { item: item } }));
+          document.dispatchEvent(new CustomEvent('cart:refresh'));
+          if (window.Shopify && typeof window.Shopify.onItemAdded === 'function') {
+            window.Shopify.onItemAdded(item);
+          }
+        })
+        .catch(function (err) {
+          /* Fix #4: Check stale request & section cleanup */
+          if (isSectionCleanedUp || thisRequestId !== currentCartRequestId) return;
+
+          console.error('Cart add error:', err);
+          if (btnSpan) btnSpan.textContent = err.message || 'ERROR ADDING TO BAG';
+
+          cartTimerId = setTimeout(function () {
+            cartTimerId = null;
+            if (isSectionCleanedUp || thisRequestId !== currentCartRequestId) return;
+            /* Re-check current selected variant state instead of blind enable */
+            updateVariant();
+          }, 2500);
+        });
     }
 
-    /* "WHAT'S INSIDE?" Inspection Overlay Modal */
+    if (form) {
+      form.addEventListener('submit', handleFormSubmit);
+    }
+
+    /* Modal 1: "WHAT'S INSIDE?" Inspection Overlay */
     var explodedBtn = container.querySelector('.undrskin-exploded-btn');
     var explodedModal = container.querySelector('.undrskin-exploded-modal');
     var explodedCloseBtn = container.querySelector('.undrskin-exploded-close');
-    var previousOverflow = '';
 
     function openExplodedModal() {
-      if (!explodedModal) return;
-      previousOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
+      if (isSectionCleanedUp || !explodedModal) return;
+      if (!explodedModalLock) {
+        explodedModalLock = true;
+        window._undrskinScrollLockManager.acquire();
+      }
       explodedModal.classList.add('is-open');
       explodedModal.setAttribute('aria-hidden', 'false');
       if (explodedCloseBtn) explodedCloseBtn.focus();
@@ -612,33 +714,36 @@
 
     function closeExplodedModal() {
       if (!explodedModal) return;
-      document.body.style.overflow = previousOverflow || '';
+      if (explodedModalLock) {
+        explodedModalLock = false;
+        window._undrskinScrollLockManager.release();
+      }
       explodedModal.classList.remove('is-open');
       explodedModal.setAttribute('aria-hidden', 'true');
-      if (explodedBtn) explodedBtn.focus();
+      if (!isSectionCleanedUp && explodedBtn) explodedBtn.focus();
     }
 
-    if (explodedBtn) {
-      explodedBtn.addEventListener('click', openExplodedModal);
-    }
-    if (explodedCloseBtn) {
-      explodedCloseBtn.addEventListener('click', closeExplodedModal);
-    }
-    if (explodedModal) {
-      explodedModal.addEventListener('click', function (e) {
-        if (e.target === explodedModal) closeExplodedModal();
-      });
+    function handleExplodedBtnClick() { openExplodedModal(); }
+    function handleExplodedCloseClick() { closeExplodedModal(); }
+    function handleExplodedBackdropClick(e) {
+      if (e.target === explodedModal) closeExplodedModal();
     }
 
-    /* Size Guide Modal */
+    if (explodedBtn) explodedBtn.addEventListener('click', handleExplodedBtnClick);
+    if (explodedCloseBtn) explodedCloseBtn.addEventListener('click', handleExplodedCloseClick);
+    if (explodedModal) explodedModal.addEventListener('click', handleExplodedBackdropClick);
+
+    /* Modal 2: Size Guide Modal */
     var sizeGuideTrigger = container.querySelector('.undrskin-size-guide-trigger');
     var sizeGuideModal = container.querySelector('.undrskin-size-guide-modal');
     var sizeGuideClose = container.querySelector('.undrskin-size-guide-close');
 
     function openSizeGuide() {
-      if (!sizeGuideModal) return;
-      previousOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
+      if (isSectionCleanedUp || !sizeGuideModal) return;
+      if (!sizeGuideModalLock) {
+        sizeGuideModalLock = true;
+        window._undrskinScrollLockManager.acquire();
+      }
       sizeGuideModal.classList.add('is-open');
       sizeGuideModal.setAttribute('aria-hidden', 'false');
       if (sizeGuideClose) sizeGuideClose.focus();
@@ -646,26 +751,28 @@
 
     function closeSizeGuide() {
       if (!sizeGuideModal) return;
-      document.body.style.overflow = previousOverflow || '';
+      if (sizeGuideModalLock) {
+        sizeGuideModalLock = false;
+        window._undrskinScrollLockManager.release();
+      }
       sizeGuideModal.classList.remove('is-open');
       sizeGuideModal.setAttribute('aria-hidden', 'true');
-      if (sizeGuideTrigger) sizeGuideTrigger.focus();
+      if (!isSectionCleanedUp && sizeGuideTrigger) sizeGuideTrigger.focus();
     }
 
-    if (sizeGuideTrigger) {
-      sizeGuideTrigger.addEventListener('click', openSizeGuide);
-    }
-    if (sizeGuideClose) {
-      sizeGuideClose.addEventListener('click', closeSizeGuide);
-    }
-    if (sizeGuideModal) {
-      sizeGuideModal.addEventListener('click', function (e) {
-        if (e.target === sizeGuideModal) closeSizeGuide();
-      });
+    function handleSizeGuideTriggerClick() { openSizeGuide(); }
+    function handleSizeGuideCloseClick() { closeSizeGuide(); }
+    function handleSizeGuideBackdropClick(e) {
+      if (e.target === sizeGuideModal) closeSizeGuide();
     }
 
-    /* Global Escape key listener */
-    function onKeyDown(e) {
+    if (sizeGuideTrigger) sizeGuideTrigger.addEventListener('click', handleSizeGuideTriggerClick);
+    if (sizeGuideClose) sizeGuideClose.addEventListener('click', handleSizeGuideCloseClick);
+    if (sizeGuideModal) sizeGuideModal.addEventListener('click', handleSizeGuideBackdropClick);
+
+    /* Global Escape Key Listener */
+    function handleKeyDown(e) {
+      if (isSectionCleanedUp) return;
       if (e.key === 'Escape') {
         if (explodedModal && explodedModal.classList.contains('is-open')) {
           closeExplodedModal();
@@ -675,12 +782,15 @@
         }
       }
     }
-    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
 
-    /* Accordions for Editorial Content */
+    /* Accordions */
     var accordionHeaders = container.querySelectorAll('.undrskin-accordion-header');
+    var accordionClickHandlers = [];
+
     accordionHeaders.forEach(function (header) {
-      header.addEventListener('click', function () {
+      function handleAccordionClick() {
+        if (isSectionCleanedUp) return;
         var item = header.closest('.undrskin-accordion-item');
         if (!item) return;
         var isActive = item.classList.contains('is-active');
@@ -688,51 +798,101 @@
           i.classList.remove('is-active');
         });
         if (!isActive) item.classList.add('is-active');
-      });
+      }
+      header.addEventListener('click', handleAccordionClick);
+      accordionClickHandlers.push({ element: header, handler: handleAccordionClick });
     });
 
     /* Section Cleanup Handler for Shopify Theme Editor & Dynamic Unloading */
-    var isSectionCleanedUp = false;
-
     function cleanupSection() {
       if (isSectionCleanedUp) return;
       isSectionCleanedUp = true;
 
       container.dataset.undrskinInitialized = 'false';
 
-      if (animId) cancelAnimationFrame(animId);
-      if (observer) observer.disconnect();
-
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('mousemove', onPointerMove);
-      window.removeEventListener('mousemove', dmove);
-      window.removeEventListener('mouseup', dend);
-      window.removeEventListener('keydown', onKeyDown);
-
-      canvas.removeEventListener('mousedown', dstart);
-      canvas.removeEventListener('touchstart', dstart);
-      canvas.removeEventListener('touchmove', dmove);
-      canvas.removeEventListener('touchend', dend);
-
-      if (explodedModal && explodedModal.classList.contains('is-open')) {
-        closeExplodedModal();
-      }
-      if (sizeGuideModal && sizeGuideModal.classList.contains('is-open')) {
-        closeSizeGuide();
+      /* Fix #2: Clear Three.js Retry Interval */
+      if (container._undrskinCheckInterval) {
+        clearInterval(container._undrskinCheckInterval);
+        container._undrskinCheckInterval = null;
       }
 
+      /* Fix #4: Clear Cart Timers & Invalidate Async Tokens */
+      currentCartRequestId++;
+      if (cartTimerId) {
+        clearTimeout(cartTimerId);
+        cartTimerId = null;
+      }
+
+      /* Fix #5: Cleanly Release Scroll Locks Owned by This Section */
+      if (explodedModalLock) {
+        explodedModalLock = false;
+        window._undrskinScrollLockManager.release();
+      }
+      if (sizeGuideModalLock) {
+        sizeGuideModalLock = false;
+        window._undrskinScrollLockManager.release();
+      }
+
+      /* Fix #1: Unbind Window & Canvas Event Listeners */
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handlePointerMove);
+      window.removeEventListener('mousemove', handleDMove);
+      window.removeEventListener('mouseup', handleDEnd);
+      window.removeEventListener('keydown', handleKeyDown);
+
+      if (canvas) {
+        canvas.removeEventListener('mousedown', handleDStart);
+        canvas.removeEventListener('touchstart', handleDStart);
+        canvas.removeEventListener('touchmove', handleDMove);
+        canvas.removeEventListener('touchend', handleDEnd);
+      }
+
+      /* Unbind Form & Button Click Handlers */
+      if (form) form.removeEventListener('submit', handleFormSubmit);
+      if (explodedBtn) explodedBtn.removeEventListener('click', handleExplodedBtnClick);
+      if (explodedCloseBtn) explodedCloseBtn.removeEventListener('click', handleExplodedCloseClick);
+      if (explodedModal) explodedModal.removeEventListener('click', handleExplodedBackdropClick);
+
+      if (sizeGuideTrigger) sizeGuideTrigger.removeEventListener('click', handleSizeGuideTriggerClick);
+      if (sizeGuideClose) sizeGuideClose.removeEventListener('click', handleSizeGuideCloseClick);
+      if (sizeGuideModal) sizeGuideModal.removeEventListener('click', handleSizeGuideBackdropClick);
+
+      swatchClickHandlers.forEach(function (obj) {
+        obj.element.removeEventListener('click', obj.handler);
+      });
+      sizeClickHandlers.forEach(function (obj) {
+        obj.element.removeEventListener('click', obj.handler);
+      });
+      accordionClickHandlers.forEach(function (obj) {
+        obj.element.removeEventListener('click', obj.handler);
+      });
+
+      /* Fix #3: Unbind Scoped Document Unload Listener */
+      document.removeEventListener('shopify:section:unload', handleSectionUnload);
+
+      /* Fix #9: Cancel RAF & Disconnect Observer */
+      if (animId) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
+      if (observer) {
+        observer.disconnect();
+      }
+
+      /* Dispose 3D Stage */
       if (stageInstance) {
         stageInstance.destroy();
         stageInstance = null;
       }
     }
 
-    // Attach cleanup to shopify:section:unload event
-    document.addEventListener('shopify:section:unload', function (e) {
+    /* Fix #3: Scoped Document Unload Handler */
+    function handleSectionUnload(e) {
       if (e.detail && e.detail.sectionId === container.dataset.sectionId) {
         cleanupSection();
       }
-    });
+    }
+    document.addEventListener('shopify:section:unload', handleSectionUnload);
 
     container._undrskinCleanup = cleanupSection;
   }
