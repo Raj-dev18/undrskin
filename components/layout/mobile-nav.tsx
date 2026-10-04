@@ -3,16 +3,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Collection } from '@/types/product';
 
 interface MobileNavProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenSearch: () => void;
-  collections?: Collection[];
 }
 
-export function MobileNav({ isOpen, onClose, onOpenSearch, collections = [] }: MobileNavProps) {
+export function MobileNav({ isOpen, onClose, onOpenSearch }: MobileNavProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -51,39 +49,29 @@ export function MobileNav({ isOpen, onClose, onOpenSearch, collections = [] }: M
                 }}
                 className="w-full flex items-center justify-between px-3 py-2.5 bg-neutral-900 border border-neutral-800 text-neutral-400 text-xs tracking-wider uppercase hover:border-neutral-700 transition-colors"
               >
-                <span>Search Silhouettes...</span>
+                <span>Search products...</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>
 
-              {/* Collections Navigation */}
               <nav className="space-y-6">
                 <div>
                   <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400 font-mono block mb-3">
-                    Collections
+                    Explore
                   </span>
                   <ul className="space-y-3 pl-1">
                     <li>
                       <Link
-                        href="/collections"
+                        href="/#shop"
                         onClick={onClose}
                         className="text-sm font-light uppercase tracking-widest text-neutral-300 hover:text-white transition-colors block"
                       >
-                        All Silhouettes
+                        Shop packs
                       </Link>
                     </li>
-                    {collections.map((c) => (
-                      <li key={c.handle}>
-                        <Link
-                          href={`/collections/${c.handle}`}
-                          onClick={onClose}
-                          className="text-sm font-light uppercase tracking-widest text-neutral-400 hover:text-white transition-colors block"
-                        >
-                          {c.title}
-                        </Link>
-                      </li>
-                    ))}
+                    <li><Link href="/#trio" onClick={onClose} className="text-sm font-light uppercase tracking-widest text-neutral-400 hover:text-white transition-colors block">Make your trio</Link></li>
+                    <li><Link href="/#care" onClick={onClose} className="text-sm font-light uppercase tracking-widest text-neutral-400 hover:text-white transition-colors block">Care</Link></li>
                   </ul>
                 </div>
 
@@ -93,13 +81,8 @@ export function MobileNav({ isOpen, onClose, onOpenSearch, collections = [] }: M
                   </span>
                   <ul className="space-y-3 pl-1 text-xs uppercase tracking-widest text-neutral-400">
                     <li>
-                      <Link href="/cart" onClick={onClose} className="hover:text-white transition-colors">
-                        Shopping Bag
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/faq" onClick={onClose} className="hover:text-white transition-colors">
-                        Client Care & FAQ
+                      <Link href="/#shop" onClick={onClose} className="hover:text-white transition-colors">
+                        Return to shop
                       </Link>
                     </li>
                   </ul>
@@ -111,7 +94,7 @@ export function MobileNav({ isOpen, onClose, onOpenSearch, collections = [] }: M
             <div className="border-t border-neutral-900 pt-6 space-y-3">
               <div className="flex items-center justify-between text-[11px] text-neutral-400 font-mono">
                 <span>CURRENCY</span>
-                <span className="text-white">USD ($)</span>
+                <span className="text-white">INR (₹)</span>
               </div>
               <p className="text-[11px] text-neutral-400 font-light">
                 concierge@undrskin.studio
