@@ -63,6 +63,7 @@ export interface JudgeMeRawReview {
   product_external_id?: number;
   product_handle?: string;
   product_title?: string;
+  source?: string;
 }
 
 export interface JudgeMeReviewsResult {
@@ -213,9 +214,91 @@ export async function getJudgeMeWidgetHtml(
   }
 }
 
+function cleanReviewBody(body: string | null): string {
+  if (!body) return '';
+  return body.replace(/^The media could not be loaded\.\s*/i, '').trim();
+}
+
+export function formatJudgeMeReview(r: JudgeMeRawReview): Review {
+  let formattedDate = '';
+  if (r.created_at) {
+    try {
+      formattedDate = new Date(r.created_at).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      formattedDate = r.created_at.split('T')[0] || '';
+    }
+  }
+
+  const isVerified =
+    r.verified === 'buyer' ||
+    r.verified === true ||
+    r.verified === 'true' ||
+    (typeof r.curated === 'string' && r.curated.toLowerCase() === 'ok') ||
+    r.source === 'amazon';
+
+  const rawName = r.reviewer?.name || r.reviewer_name;
+  const author = (!rawName || rawName.toLowerCase() === 'anonymous') ? 'Verified Customer' : rawName;
+
+  return {
+    id: String(r.id),
+    author,
+    rating: Math.max(1, Math.min(5, Number(r.rating) || 5)),
+    title: r.title || 'Review',
+    content: cleanReviewBody(r.body),
+    date: formattedDate,
+    verifiedBuyer: isVerified,
+  };
+}
+
+/**
+ * Fetches all verified store reviews directly from Judge.me API.
+ */
+export async function getJudgeMeStoreReviews(limit = 20): Promise<Review[]> {
+  const { shopDomain, apiToken } = getJudgeMeCredentials();
+  if (!shopDomain || !apiToken) {
+    return [];
+  }
+
+  try {
+    const url = new URL(`${JUDGEME_BASE_URL}/reviews`);
+    url.searchParams.set('shop_domain', shopDomain);
+    url.searchParams.set('api_token', apiToken);
+    url.searchParams.set('per_page', String(limit));
+
+    const res = await fetch(url.toString(), {
+      headers: {
+        Accept: 'application/json',
+        'X-Api-Token': apiToken,
+      },
+      next: { revalidate: 300 },
+    });
+
+    if (!res.ok) {
+      console.warn(`[Judge.me] getJudgeMeStoreReviews failed with ${res.status}`);
+      return [];
+    }
+
+    const data = await res.json();
+    const rawReviews: JudgeMeRawReview[] = Array.isArray(data.reviews)
+      ? data.reviews
+      : Array.isArray(data)
+      ? data
+      : [];
+
+    return rawReviews.map(formatJudgeMeReview);
+  } catch (error) {
+    console.warn('[Judge.me] Error fetching store reviews:', error);
+    return [];
+  }
+}
+
 /**
  * Fetches reviews and calculates aggregate rating for a specific Shopify product.
- * Throws explicit error on API non-200 responses to avoid silently masking misconfigurations.
+ * Returns only reviews that belong to this product. Does not apply store-wide reviews to unrelated products.
  */
 export async function getJudgeMeProductReviews(
   shopifyIdOrGid: string,
@@ -280,18 +363,18 @@ export async function getJudgeMeProductReviews(
     return { ...emptyResult, widgetHtml };
   }
 
-  // Filter to ensure reviews belong to this product
+  // Filter strictly to ensure reviews belong to this product
   const relevantReviews = rawReviews.filter((r) => {
     if (judgeMeProductId && r.product_id) {
       return r.product_id === judgeMeProductId;
     }
-    if (numericId && r.product_external_id) {
+    if (numericId && r.product_external_id && r.product_external_id !== 0) {
       return String(r.product_external_id) === numericId;
     }
-    if (handle && r.product_handle) {
+    if (handle && r.product_handle && r.product_handle !== 'judgeme-shop-reviews') {
       return r.product_handle === handle;
     }
-    return true;
+    return false;
   });
 
   if (relevantReviews.length === 0) {
@@ -302,36 +385,7 @@ export async function getJudgeMeProductReviews(
   const totalRating = relevantReviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0);
   const averageRating = Number((totalRating / relevantReviews.length).toFixed(1));
 
-  const mappedReviews: Review[] = relevantReviews.map((r) => {
-    let formattedDate = '';
-    if (r.created_at) {
-      try {
-        formattedDate = new Date(r.created_at).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        });
-      } catch {
-        formattedDate = r.created_at.split('T')[0] || '';
-      }
-    }
-
-    const isVerified =
-      r.verified === 'buyer' ||
-      r.verified === true ||
-      r.verified === 'true' ||
-      (typeof r.curated === 'string' && r.curated.toLowerCase() === 'ok');
-
-    return {
-      id: String(r.id),
-      author: r.reviewer?.name || r.reviewer_name || 'Client',
-      rating: Math.max(1, Math.min(5, Number(r.rating) || 5)),
-      title: r.title || 'Verified Impression',
-      content: r.body || '',
-      date: formattedDate,
-      verifiedBuyer: isVerified,
-    };
-  });
+  const mappedReviews: Review[] = relevantReviews.map(formatJudgeMeReview);
 
   return {
     rating: averageRating,
@@ -415,6 +469,12 @@ export async function getStoreJudgeMeRatingsMap(): Promise<
     ratingsMap.set(key, { rating: avg, reviewCount: ratings.length });
   });
 
+  // Calculate store average for fallback
+  if (rawReviews.length > 0) {
+    const storeAvg = Number((rawReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0) / rawReviews.length).toFixed(1));
+    ratingsMap.set('__store_avg__', { rating: storeAvg, reviewCount: rawReviews.length });
+  }
+
   storeReviewsCache = { timestamp: now, data: ratingsMap };
   return ratingsMap;
 }
@@ -428,7 +488,6 @@ export async function enrichProductsWithReviews<
   if (!products || products.length === 0) return products;
 
   const ratingsMap = await getStoreJudgeMeRatingsMap();
-  if (ratingsMap.size === 0) return products;
 
   return products.map((product) => {
     const numericId = extractNumericShopifyId(product.id);
