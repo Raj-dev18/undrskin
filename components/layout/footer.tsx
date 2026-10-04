@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Collection } from '@/types/product';
 
@@ -9,58 +9,54 @@ interface FooterProps {
 }
 
 export function Footer({ collections = [] }: FooterProps) {
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      setSubscribed(true);
-      setEmail('');
-    }
-  };
-
-  const navCollections = collections.slice(0, 5);
 
   return (
-    <footer className="bg-neutral-950 text-neutral-400 border-t border-neutral-900 pt-16 pb-12">
+    <footer className="site-footer bg-neutral-950 text-neutral-400 border-t border-neutral-900 pt-16 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 pb-16 border-b border-neutral-900">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-8 md:gap-12 pb-16 border-b border-neutral-900">
 
-          <div className="md:col-span-4 space-y-4">
-            <span className="font-extralight tracking-[0.3em] text-lg text-white uppercase inline-block">
-              UNDRSKIN
-            </span>
+          <div className="col-span-2 md:col-span-3 space-y-4">
+            <img
+              src="https://undrskin.in/cdn/shop/files/Gemini_Generated_Image_5wr4kj5wr4kj5wr4_1.png?v=1784465127"
+              alt="UndrSkin"
+              className="h-9 w-auto object-contain"
+            />
             <p className="text-xs leading-relaxed text-neutral-400 font-light max-w-sm">
-              An architectural exploration of foundational dressing. We design body-hugging minimalist second-skin layers that breathe, mold, and adapt effortlessly to everyday life.
+              Skin-first bamboo essentials designed for softness, breathability, and everyday comfort.
             </p>
-            <div className="pt-2">
-              <span className="inline-block text-[11px] uppercase tracking-widest text-neutral-500 border border-neutral-800 px-2.5 py-1">
-                OEKO-TEX® & Carbon Neutral
-              </span>
-            </div>
+            <span className="inline-block text-[10px] tracking-[0.2em] uppercase text-neutral-500 font-mono">
+              Made in India · 95% Bamboo · 5% Spandex
+            </span>
           </div>
 
-          <div className="md:col-span-2 space-y-3">
-            <h4 className="text-xs uppercase tracking-[0.2em] text-neutral-200 font-medium">Collections</h4>
+          <div className="col-span-1 md:col-span-2 space-y-3">
+            <h4 className="text-xs uppercase tracking-[0.2em] text-neutral-200 font-medium">Shop</h4>
             <ul className="space-y-2.5 text-xs font-light">
               <li>
                 <Link href="/collections" className="hover:text-white transition-colors">
-                  All Silhouettes
+                  All Collections
                 </Link>
               </li>
-              {navCollections.map((col) => (
-                <li key={col.handle}>
-                  <Link href={`/collections/${col.handle}`} className="hover:text-white transition-colors">
-                    {col.title}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link href="/#trios" className="hover:text-white transition-colors">
+                  The Four Trios
+                </Link>
+              </li>
+              <li>
+                <Link href="/#buy" className="hover:text-white transition-colors">
+                  Bamboo Hipster
+                </Link>
+              </li>
+              <li>
+                <Link href="/#reviews" className="hover:text-white transition-colors">
+                  Client Reviews
+                </Link>
+              </li>
             </ul>
           </div>
 
-          <div className="md:col-span-2 space-y-3">
-            <h4 className="text-xs uppercase tracking-[0.2em] text-neutral-200 font-medium">Client Care</h4>
+          <div className="col-span-1 md:col-span-2 space-y-3">
+            <h4 className="text-xs uppercase tracking-[0.2em] text-neutral-200 font-medium">Help</h4>
             <ul className="space-y-2.5 text-xs font-light">
               <li>
                 <Link href="/faq" className="hover:text-white transition-colors">
@@ -68,59 +64,58 @@ export function Footer({ collections = [] }: FooterProps) {
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="hover:text-white transition-colors">
+                <Link href="/policies/shipping" className="hover:text-white transition-colors">
                   Shipping & Delivery
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="hover:text-white transition-colors">
-                  Returns & Exchanges
+                <Link href="/policies/refunds" className="hover:text-white transition-colors">
+                  Returns & Refunds
                 </Link>
               </li>
               <li>
-                <a href="mailto:care@undrskin.studio" className="hover:text-white transition-colors">
-                  care@undrskin.studio
-                </a>
+                <Link href="/policies/contact" className="hover:text-white transition-colors">
+                  Contact Support
+                </Link>
               </li>
             </ul>
           </div>
 
-          <div className="md:col-span-4 space-y-4">
-            <h4 className="text-xs uppercase tracking-[0.2em] text-neutral-200 font-medium">Privilege List</h4>
+          <div className="col-span-1 md:col-span-2 space-y-3">
+            <h4 className="text-xs uppercase tracking-[0.2em] text-neutral-200 font-medium">Policies</h4>
+            <ul className="space-y-2.5 text-xs font-light">
+              <li><Link href="/policies/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/policies/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+              <li><Link href="/policies/shipping" className="hover:text-white transition-colors">Shipping Policy</Link></li>
+              <li><Link href="/policies/refunds" className="hover:text-white transition-colors">Refund & Return Policy</Link></li>
+              <li><Link href="/policies/legal" className="hover:text-white transition-colors">Legal Notice</Link></li>
+              <li><Link href="/policies/contact" className="hover:text-white transition-colors">Contact Information</Link></li>
+            </ul>
+          </div>
+
+          <div className="col-span-1 md:col-span-3 space-y-4">
+            <h4 className="text-xs uppercase tracking-[0.2em] text-neutral-200 font-medium">Elsewhere</h4>
             <p className="text-xs text-neutral-400 font-light leading-relaxed">
-              Subscribe to receive intimate access to limited capsule releases, private previews, and material dispatches.
+              Available directly or via our official marketplace storefronts.
             </p>
-            {subscribed ? (
-              <p className="text-xs text-neutral-300 font-light italic">
-                Welcome to the inner circle. Your confirmation has been dispatched.
-              </p>
-            ) : (
-              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="bg-neutral-900 border border-neutral-800 text-xs px-3.5 py-2.5 text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 w-full"
-                />
-                <button
-                  type="submit"
-                  className="bg-neutral-100 hover:bg-white text-neutral-950 text-xs uppercase tracking-widest font-medium px-5 py-2.5 transition-colors whitespace-nowrap"
-                >
-                  Join
-                </button>
-              </form>
-            )}
+            <div className="flex flex-col space-y-2 text-xs">
+              <a href="https://www.amazon.in/stores/UndrSkin/page/061AD50D-1279-42A1-AB1F-50E480F55AAB" target="_blank" rel="noopener" className="hover:text-white transition-colors">Amazon Store ↗</a>
+              <a href="https://www.instagram.com/undrskin.in/" target="_blank" rel="noopener" className="hover:text-white transition-colors">Instagram ↗</a>
+              <a href="https://www.linkedin.com/company/undrskin/" target="_blank" rel="noopener" className="hover:text-white transition-colors">LinkedIn ↗</a>
+              <a href="https://www.facebook.com/people/Undrskin-Apparels/61574395374430/" target="_blank" rel="noopener" className="hover:text-white transition-colors">Facebook ↗</a>
+            </div>
           </div>
         </div>
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] font-light text-neutral-500 gap-4">
           <p>© {new Date().getFullYear()} UNDRSKIN STUDIO INC. ALL RIGHTS RESERVED.</p>
-          <div className="flex items-center space-x-6">
-            <span>TERMS OF SERVICE</span>
-            <span>PRIVACY DISCLOSURE</span>
-            <span>ACCESSIBILITY</span>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <Link href="/policies/terms" className="hover:text-neutral-400 transition-colors">TERMS OF SERVICE</Link>
+            <Link href="/policies/privacy" className="hover:text-neutral-400 transition-colors">PRIVACY POLICY</Link>
+            <Link href="/policies/refunds" className="hover:text-neutral-400 transition-colors">REFUND POLICY</Link>
+            <Link href="/policies/shipping" className="hover:text-neutral-400 transition-colors">SHIPPING POLICY</Link>
+            <Link href="/policies/legal" className="hover:text-neutral-400 transition-colors">LEGAL NOTICE</Link>
+            <Link href="/policies/contact" className="hover:text-neutral-400 transition-colors">CONTACT</Link>
           </div>
         </div>
       </div>
