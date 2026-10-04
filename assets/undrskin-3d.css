@@ -232,7 +232,7 @@
   border-color: var(--us-dark);
 }
 
-/* ------------------ Modals: What's Inside Technical Inspection Diagram Artwork Overlay */
+/* ------------------ Clean Inspection Image Overlay Modal ------------------ */
 .undrskin-exploded-modal {
   position: fixed;
   inset: 0;
@@ -246,7 +246,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  padding: 1.25rem;
+  padding: 1rem;
 }
 
 .undrskin-exploded-modal.is-open {
@@ -255,17 +255,16 @@
 }
 
 .undrskin-exploded-content {
+  position: relative;
   background: #A6C7B7;
-  color: #1B1717;
-  width: 100%;
-  max-width: 920px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
   border-radius: 20px;
   overflow: hidden;
-  position: relative;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
   transform: scale(0.95);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -274,34 +273,20 @@
   transform: scale(1);
 }
 
-.undrskin-exploded-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background: rgba(166, 199, 183, 0.95);
-  border-bottom: 1px solid rgba(27, 23, 23, 0.1);
-  z-index: 2;
-}
-
-.undrskin-exploded-title {
-  font-family: var(--us-font-display);
-  font-size: 1.25rem;
-  font-weight: 400;
-  margin: 0;
-  color: #1B1717;
-  letter-spacing: 0.02em;
-}
-
 .undrskin-exploded-close {
-  background: rgba(255, 255, 255, 0.4);
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(4px);
   border: 1px solid rgba(27, 23, 23, 0.15);
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   line-height: 1;
   color: #1B1717;
   cursor: pointer;
@@ -310,36 +295,25 @@
 
 .undrskin-exploded-close:hover {
   background: #FFFFFF;
-  transform: scale(1.08);
-}
-
-.undrskin-exploded-body {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  padding: 1rem;
-  background: #A6C7B7;
+  transform: scale(1.1);
 }
 
 .undrskin-diagram-wrapper {
   width: 100%;
   height: 100%;
+  max-height: 85vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  max-height: 75vh;
+  overflow-y: auto;
 }
 
 .undrskin-diagram-img {
   max-width: 100%;
-  max-height: 75vh;
+  max-height: 85vh;
   width: auto;
   height: auto;
   object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   display: block;
 }
 
@@ -382,7 +356,7 @@
   }
 
   .undrskin-exploded-modal {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 
   .undrskin-exploded-content {
@@ -390,25 +364,20 @@
     border-radius: 16px;
   }
 
-  .undrskin-exploded-header {
-    padding: 0.85rem 1rem;
-  }
-
-  .undrskin-exploded-title {
-    font-size: 1.05rem;
-  }
-
-  .undrskin-exploded-body {
-    padding: 0.5rem;
+  .undrskin-exploded-close {
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 34px;
+    height: 34px;
+    font-size: 1.4rem;
   }
 
   .undrskin-diagram-wrapper {
-    max-height: 78vh;
+    max-height: 90vh;
   }
 
   .undrskin-diagram-img {
-    max-height: 78vh;
-    border-radius: 8px;
+    max-height: 90vh;
   }
 }
 
