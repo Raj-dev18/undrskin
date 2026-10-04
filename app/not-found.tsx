@@ -7,7 +7,7 @@ export default function NotFound() {
         404 — Void
       </span>
       <h1 className="text-2xl sm:text-3xl font-light text-white tracking-widest uppercase">
-        Silhouette Not Found
+        Product Not Found
       </h1>
       <p className="text-xs text-neutral-400 font-light max-w-md leading-relaxed">
         The piece or archive you are searching for is unavailable, relocated, or has been archived from the seasonal curation.
@@ -23,7 +23,7 @@ export default function NotFound() {
           href="/collections"
           className="px-6 py-3 border border-neutral-700 text-white text-xs uppercase tracking-widest hover:border-white transition-colors"
         >
-          Browse Silhouettes
+          Shop the collection
         </Link>
       </div>
     </div>

@@ -12,8 +12,8 @@ interface SearchPageProps {
 export async function generateMetadata({ searchParams }: SearchPageProps): Promise<Metadata> {
   const { q } = await searchParams;
   return {
-    title: q ? `Search: "${q}" — UNDRSKIN` : 'Search Silhouettes — UNDRSKIN',
-    description: 'Search architectural second-skin lingerie, contour slips, and modal foundations.',
+    title: q ? `Search: "${q}" — UNDRSKIN` : 'Search Bamboo Underwear — UNDRSKIN',
+    description: 'Search the UNDRSKIN collection of comfortable bamboo underwear packs.',
   };
 }
 
@@ -31,21 +31,21 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           Home
         </Link>
         <span>/</span>
-        <span className="text-white">Search Archive</span>
+        <span className="text-neutral-900">Search</span>
       </nav>
 
       {/* Header & Query Input */}
       <div className="max-w-2xl mb-12">
         <span className="text-[10px] uppercase tracking-[0.25em] text-neutral-400 font-mono">
-          Global Silhouette Search
+          UNDRSKIN Collection Search
         </span>
         <h1 className="text-3xl sm:text-4xl font-light text-white tracking-tight uppercase mt-2">
-          {cleanQuery ? `Results for "${cleanQuery}"` : 'Explore the Archive'}
+          {cleanQuery ? `Results for "${cleanQuery}"` : 'Find your everyday essentials'}
         </h1>
         <p className="mt-3 text-xs sm:text-sm text-neutral-400 font-light leading-relaxed">
           {cleanQuery
-            ? `Displaying ${products.length} architectural piece${products.length === 1 ? '' : 's'} matching your query.`
-            : 'Enter search terms such as "silk", "sculpt", "bralette", or "modal" to discover foundational silhouettes.'}
+            ? `Found ${products.length} item${products.length === 1 ? '' : 's'} matching your search.`
+            : 'Search for a pack name, color, or size.'}
         </p>
 
         {/* Search Bar Form */}
@@ -54,7 +54,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             type="search"
             name="q"
             defaultValue={cleanQuery}
-            placeholder="Search raw silk, contour slips, seamless bralettes..."
+            placeholder="Search bamboo underwear packs..."
             className="flex-1 bg-neutral-900 border border-neutral-800 text-xs px-4 py-3 text-white placeholder:text-neutral-500 focus:outline-none focus:border-white transition-colors"
           />
           <button
@@ -70,7 +70,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       {cleanQuery ? (
         <ProductGrid
           products={products}
-          emptyMessage={`No silhouettes found matching "${cleanQuery}". Try exploring our full collection.`}
+          emptyMessage={`No products found matching "${cleanQuery}". Try browsing the full collection.`}
         />
       ) : (
         <div className="py-16 border-t border-neutral-900">
