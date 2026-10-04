@@ -1,6 +1,6 @@
 /* ==========================================================================
    UNDRSKIN 3D SHOPIFY THEME STYLES (assets/undrskin-3d.css)
-   Scoped to .undrskin-3d-product to prevent theme style conflicts
+   Scoped to .undrskin-3d-product — Pure Interactive 3D Configurator UI
    ========================================================================== */
 
 :root {
@@ -24,7 +24,7 @@
   font-family: var(--us-font-sans);
   overflow-x: hidden;
   box-sizing: border-box;
-  padding: 3rem 0;
+  padding: 3.5rem 0;
 }
 
 .undrskin-3d-product * {
@@ -40,7 +40,7 @@
 /* ---------------------------------------------------------- Layout Grid */
 .undrskin-hero-grid {
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
+  grid-template-columns: 1.2fr 1fr;
   gap: 3.5rem;
   align-items: center;
 }
@@ -64,7 +64,7 @@
   font-size: clamp(2rem, 3.5vw, 2.75rem);
   line-height: 1.1;
   font-weight: 400;
-  margin: 0 0 1.25rem 0;
+  margin: 0 0 1.5rem 0;
   color: var(--us-dark);
 }
 
@@ -147,70 +147,33 @@
 .undrskin-details-panel {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-.undrskin-price-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  font-size: 1.35rem;
-  font-weight: 500;
-}
-
-.undrskin-price {
-  font-family: var(--us-font-display);
-  font-size: 1.6rem;
-  color: var(--us-dark);
-}
-
-.undrskin-compare-price {
-  text-decoration: line-through;
-  color: rgba(27, 23, 23, 0.45);
-  font-size: 1.1rem;
-}
-
-.undrskin-badge-save {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 0.25rem 0.6rem;
-  background-color: var(--us-wine);
-  color: #FFFFFF;
-  border-radius: var(--us-radius);
-}
-
-.undrskin-description p {
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: rgba(27, 23, 23, 0.8);
-  margin: 0;
+  gap: 1.75rem;
 }
 
 /* ---------------------------------------------------- Swatches & Options */
 .undrskin-option-group {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.65rem;
 }
 
 .undrskin-option-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
 .undrskin-swatch-group {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.85rem;
   align-items: center;
 }
 
 .undrskin-swatch-btn {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   border: 2px solid transparent;
   padding: 2px;
@@ -239,15 +202,15 @@
 /* ------------------------------------------------------- Size Options */
 .undrskin-size-options {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
 }
 
 .undrskin-size-btn {
   min-width: 48px;
-  height: 40px;
-  padding: 0 0.85rem;
-  border: 1px solid rgba(27, 23, 23, 0.2);
+  height: 42px;
+  padding: 0 0.9rem;
+  border: 1px solid rgba(27, 23, 23, 0.25);
   border-radius: 8px;
   background: transparent;
   font-size: 0.85rem;
@@ -269,102 +232,8 @@
   border-color: var(--us-dark);
 }
 
-.undrskin-size-guide-trigger {
-  background: none;
-  border: none;
-  font-size: 0.8rem;
-  text-decoration: underline;
-  color: var(--us-dark);
-  cursor: pointer;
-  opacity: 0.8;
-  padding: 0;
-}
-
-.undrskin-size-guide-trigger:hover {
-  opacity: 1;
-}
-
-/* ---------------------------------------------------- Add to Bag Button */
-.undrskin-add-to-bag-btn {
-  width: 100%;
-  height: 54px;
-  background: var(--us-dark);
-  color: #FFFFFF;
-  border: none;
-  border-radius: var(--us-radius);
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: var(--us-transition);
-  margin-top: 0.5rem;
-  box-shadow: 0 8px 24px rgba(27, 23, 23, 0.15);
-}
-
-.undrskin-add-to-bag-btn:hover:not(:disabled) {
-  background: #332d2d;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(27, 23, 23, 0.22);
-}
-
-.undrskin-add-to-bag-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* ---------------------------------------------------------- Accordions */
-.undrskin-accordions-wrapper {
-  border-top: 1px solid rgba(27, 23, 23, 0.12);
-  margin-top: 1rem;
-}
-
-.undrskin-accordion-item {
-  border-bottom: 1px solid rgba(27, 23, 23, 0.12);
-}
-
-.undrskin-accordion-header {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 0;
-  background: transparent;
-  border: none;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--us-dark);
-  cursor: pointer;
-}
-
-.undrskin-accordion-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.35s ease;
-  font-size: 0.88rem;
-  line-height: 1.55;
-  color: rgba(27, 23, 23, 0.75);
-}
-
-.undrskin-accordion-item.is-active .undrskin-accordion-content {
-  max-height: 140px;
-  padding-bottom: 1rem;
-}
-
-.undrskin-accordion-item.is-active .undrskin-accordion-icon {
-  transform: rotate(45deg);
-}
-
-.undrskin-accordion-icon {
-  font-size: 1.2rem;
-  transition: transform 0.25s ease;
-}
-
-/* ---------------------------------- Modals: What's Inside & Size Guide */
-.undrskin-exploded-modal,
-.undrskin-size-guide-modal {
+/* ---------------------------------- Modals: What's Inside Inspection Overlay */
+.undrskin-exploded-modal {
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -380,14 +249,12 @@
   padding: 1.25rem;
 }
 
-.undrskin-exploded-modal.is-open,
-.undrskin-size-guide-modal.is-open {
+.undrskin-exploded-modal.is-open {
   opacity: 1;
   pointer-events: auto;
 }
 
-.undrskin-exploded-content,
-.undrskin-size-guide-content {
+.undrskin-exploded-content {
   background: var(--us-cream);
   color: var(--us-dark);
   width: 100%;
@@ -402,13 +269,11 @@
   transition: transform 0.3s ease;
 }
 
-.undrskin-exploded-modal.is-open .undrskin-exploded-content,
-.undrskin-size-guide-modal.is-open .undrskin-size-guide-content {
+.undrskin-exploded-modal.is-open .undrskin-exploded-content {
   transform: scale(1);
 }
 
-.undrskin-exploded-header,
-.undrskin-size-guide-header {
+.undrskin-exploded-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -417,16 +282,14 @@
   margin-bottom: 1.25rem;
 }
 
-.undrskin-exploded-title,
-.undrskin-size-guide-header h3 {
+.undrskin-exploded-title {
   font-family: var(--us-font-display);
   font-size: 1.4rem;
   margin: 0;
   font-weight: 400;
 }
 
-.undrskin-exploded-close,
-.undrskin-size-guide-close {
+.undrskin-exploded-close {
   background: transparent;
   border: none;
   font-size: 1.8rem;
@@ -499,103 +362,6 @@
   flex-shrink: 0;
 }
 
-/* ---------------------------------------------------- Size Guide Table */
-.undrskin-size-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  font-size: 0.88rem;
-}
-
-.undrskin-size-table th,
-.undrskin-size-table td {
-  padding: 0.65rem 0.75rem;
-  text-align: center;
-  border-bottom: 1px solid rgba(27, 23, 23, 0.1);
-}
-
-.undrskin-size-table th {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.undrskin-size-table tr.is-highlight {
-  background: rgba(185, 112, 115, 0.15);
-  font-weight: 600;
-}
-
-/* ----------------------------------------------------- Collection Grid */
-.undrskin-collection-section {
-  padding: 4rem 0;
-  background: #F1E9DF;
-  color: var(--us-dark);
-}
-
-.undrskin-collection-header {
-  margin-bottom: 2rem;
-}
-
-.undrskin-collection-title {
-  font-family: var(--us-font-display);
-  font-size: 2rem;
-  margin: 0 0 0.5rem 0;
-  font-weight: 400;
-}
-
-.undrskin-product-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
-
-.undrskin-card {
-  text-decoration: none;
-  color: inherit;
-  display: flex;
-  flex-direction: column;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #FFFFFF;
-  transition: var(--us-transition);
-}
-
-.undrskin-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-}
-
-.undrskin-card-image-wrapper {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background: #E8DFD5;
-  overflow: hidden;
-}
-
-.undrskin-card-image-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.undrskin-card-details {
-  padding: 1rem;
-}
-
-.undrskin-card-title {
-  font-family: var(--us-font-display);
-  font-size: 1.1rem;
-  margin: 0 0 0.25rem 0;
-  font-weight: 400;
-}
-
-.undrskin-card-price {
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
 /* ---------------------------------------------------- Responsive Styles */
 @media (max-width: 1024px) {
   .undrskin-hero-grid {
@@ -605,7 +371,7 @@
 
 @media (max-width: 768px) {
   .undrskin-3d-product {
-    padding: 1.5rem 0;
+    padding: 2rem 0;
   }
 
   .undrskin-mobile-top-info {
@@ -633,11 +399,6 @@
     padding: 0.45rem 0.85rem;
     font-size: 0.7rem;
   }
-
-  .undrskin-product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
 }
 
 @media (max-width: 480px) {
@@ -647,10 +408,5 @@
 
   .undrskin-3d-stage {
     min-height: 280px;
-  }
-
-  .undrskin-product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
   }
 }

@@ -1,6 +1,6 @@
 /* ==========================================================================
    UNDRSKIN 3D SHOPIFY ENGINE (assets/undrskin-3d.js)
-   Authoritative 3D Cloth Viewer with Full Lifecycle & State Management
+   Standalone Interactive 3D Product Configurator Viewer Engine
    ========================================================================== */
 
 (function () {
@@ -144,7 +144,7 @@
     }
     var maps = COLOURWAYS.map(function (c) { return tex(c.tex); });
 
-    /* Fix #6: Initialize renderer uniforms with initial active colour */
+    /* Synchronize initial renderer texture with UI swatch state */
     var initIdx = opts.initialColourIndex || 0;
     if (initIdx < 0 || initIdx >= COLOURWAYS.length) initIdx = 0;
 
@@ -336,7 +336,7 @@
 
     var isSectionCleanedUp = false;
 
-    /* Fix #2: Tracked Three.js Retry Interval */
+    /* Three.js Retry Interval Handling */
     if (!window.THREE) {
       if (container._undrskinCheckInterval) {
         clearInterval(container._undrskinCheckInterval);
@@ -363,7 +363,7 @@
       return;
     }
 
-    /* Fix #6: Determine initial active colour index from Liquid UI */
+    /* Determine initial active colour index from UI swatch state */
     var initialActiveSwatch = container.querySelector('.undrskin-swatch-btn.is-active');
     var initialColourIndex = 0;
     if (initialActiveSwatch) {
@@ -399,14 +399,11 @@
 
     container.dataset.undrskinInitialized = 'true';
 
-    /* State & Timers */
+    /* State Variables */
     var animId = null;
     var lastTime = performance.now();
     var isVisible = true;
-    var cartTimerId = null;            /* Fix #4: Cart Timer ID */
-    var currentCartRequestId = 0;      /* Fix #4: Cart Request Token */
-    var explodedModalLock = false;     /* Fix #5: Scroll Lock State */
-    var sizeGuideModalLock = false;    /* Fix #5: Scroll Lock State */
+    var explodedModalLock = false;
 
     /* IntersectionObserver */
     var observer = new IntersectionObserver(function (entries) {
@@ -428,7 +425,7 @@
     }
     animId = requestAnimationFrame(loop);
 
-    /* Fix #1: Named Event Listener Handlers */
+    /* Event Listeners */
     function handleResize() {
       if (!isSectionCleanedUp && stageInstance) stageInstance.resize();
     }
@@ -470,7 +467,6 @@
       if (stageInstance) stageInstance.setDragging(false);
     }
 
-    /* Bind Canvas & Window Listeners */
     window.addEventListener('resize', handleResize);
     window.addEventListener('mousemove', handlePointerMove, { passive: true });
     canvas.addEventListener('mousedown', handleDStart);
@@ -481,105 +477,21 @@
     canvas.addEventListener('touchmove', handleDMove, { passive: true });
     canvas.addEventListener('touchend', handleDEnd);
 
-    /* Variant JSON & Option Matching */
-    var variantsData = [];
-    var variantsScript = container.querySelector('[data-product-variants-json]');
-    if (variantsScript) {
-      try {
-        variantsData = JSON.parse(variantsScript.textContent || '[]');
-      } catch (err) {
-        console.error('Failed to parse Shopify variants JSON:', err);
-      }
-    }
-
+    /* Colour Swatch Controls */
     var colorSwatches = container.querySelectorAll('.undrskin-swatch-btn');
-    var sizeBtns = container.querySelectorAll('.undrskin-size-btn');
-    var selectedVariantInput = container.querySelector('[name="id"]');
-    var priceEl = container.querySelector('.undrskin-price');
-    var comparePriceEl = container.querySelector('.undrskin-compare-price');
-    var addToBagBtn = container.querySelector('.undrskin-add-to-bag-btn');
     var activeColorNameEl = container.querySelector('#cwName');
-
-    function formatMoney(cents) {
-      if (window.Shopify && typeof window.Shopify.formatMoney === 'function') {
-        return window.Shopify.formatMoney(cents);
-      }
-      return '₹' + (cents / 100).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-    }
-
-    /* Exact option matching for Shopify variants */
-    function updateVariant() {
-      if (isSectionCleanedUp) return;
-
-      var activeColorBtn = container.querySelector('.undrskin-swatch-btn.is-active');
-      var activeSizeBtn = container.querySelector('.undrskin-size-btn.is-active');
-
-      var colorVal = activeColorBtn ? (activeColorBtn.dataset.value || '').trim() : '';
-      var sizeVal = activeSizeBtn ? (activeSizeBtn.dataset.value || '').trim() : '';
-
-      if (activeColorNameEl && colorVal) {
-        activeColorNameEl.textContent = colorVal;
-      }
-
-      if (!variantsData.length) return;
-
-      /* Exact matching against variant options */
-      var matchedVariant = variantsData.find(function (v) {
-        var opts = v.options || [v.option1, v.option2, v.option3].filter(Boolean);
-        var optsLower = opts.map(function (o) { return (o || '').toString().trim().toLowerCase(); });
-
-        var colorMatch = true;
-        if (colorVal) {
-          colorMatch = optsLower.some(function (o) { return o === colorVal.toLowerCase(); });
-        }
-
-        var sizeMatch = true;
-        if (sizeVal) {
-          sizeMatch = optsLower.some(function (o) { return o === sizeVal.toLowerCase(); });
-        }
-
-        return colorMatch && sizeMatch;
-      });
-
-      var btnSpan = addToBagBtn ? (addToBagBtn.querySelector('span') || addToBagBtn) : null;
-
-      if (matchedVariant) {
-        if (selectedVariantInput) selectedVariantInput.value = matchedVariant.id;
-
-        if (priceEl && matchedVariant.price !== undefined) {
-          priceEl.textContent = formatMoney(matchedVariant.price);
-        }
-        if (comparePriceEl) {
-          if (matchedVariant.compare_at_price > matchedVariant.price) {
-            comparePriceEl.textContent = formatMoney(matchedVariant.compare_at_price);
-            comparePriceEl.style.display = 'inline';
-          } else {
-            comparePriceEl.style.display = 'none';
-          }
-        }
-
-        if (matchedVariant.available) {
-          if (addToBagBtn) addToBagBtn.disabled = false;
-          if (btnSpan) btnSpan.textContent = 'ADD TO BAG';
-        } else {
-          if (addToBagBtn) addToBagBtn.disabled = true;
-          if (btnSpan) btnSpan.textContent = 'SOLD OUT';
-        }
-      } else {
-        /* No exact matching variant exists */
-        if (selectedVariantInput) selectedVariantInput.value = '';
-        if (addToBagBtn) addToBagBtn.disabled = true;
-        if (btnSpan) btnSpan.textContent = 'UNAVAILABLE';
-      }
-    }
-
-    /* Named Swatch Click Handler */
     var swatchClickHandlers = [];
+
     colorSwatches.forEach(function (swatch) {
       function handleSwatchClick() {
         if (isSectionCleanedUp) return;
         colorSwatches.forEach(function (s) { s.classList.remove('is-active', 'is-on'); });
         swatch.classList.add('is-active', 'is-on');
+
+        var val = (swatch.dataset.value || '').trim();
+        if (activeColorNameEl && val) {
+          activeColorNameEl.textContent = val;
+        }
 
         var idxStr = swatch.getAttribute('data-c');
         var idx = idxStr !== null ? parseInt(idxStr, 10) : 0;
@@ -591,112 +503,26 @@
         if (fallback && COLOURWAYS[idx]) {
           fallback.src = COLOURWAYS[idx].tex;
         }
-
-        updateVariant();
       }
       swatch.addEventListener('click', handleSwatchClick);
       swatchClickHandlers.push({ element: swatch, handler: handleSwatchClick });
     });
 
-    /* Named Size Click Handler */
+    /* Size Button Controls (Visual Configurator UI Only) */
+    var sizeBtns = container.querySelectorAll('.undrskin-size-btn');
     var sizeClickHandlers = [];
+
     sizeBtns.forEach(function (btn) {
       function handleSizeClick() {
-        if (isSectionCleanedUp || btn.disabled) return;
+        if (isSectionCleanedUp) return;
         sizeBtns.forEach(function (b) { b.classList.remove('is-active', 'is-on'); });
         btn.classList.add('is-active', 'is-on');
-        updateVariant();
       }
       btn.addEventListener('click', handleSizeClick);
       sizeClickHandlers.push({ element: btn, handler: handleSizeClick });
     });
 
-    // Initial variant match
-    updateVariant();
-
-    /* Cart Form Submission */
-    var form = container.querySelector('.undrskin-variant-form');
-
-    function handleFormSubmit(e) {
-      e.preventDefault();
-      if (isSectionCleanedUp) return;
-
-      var variantId = selectedVariantInput ? selectedVariantInput.value : null;
-      if (!variantId) {
-        alert('Please select a valid product variant.');
-        return;
-      }
-
-      currentCartRequestId++;
-      var thisRequestId = currentCartRequestId;
-
-      if (cartTimerId) {
-        clearTimeout(cartTimerId);
-        cartTimerId = null;
-      }
-
-      if (addToBagBtn) addToBagBtn.disabled = true;
-      var btnSpan = addToBagBtn ? (addToBagBtn.querySelector('span') || addToBagBtn) : null;
-      if (btnSpan) btnSpan.textContent = 'ADDING...';
-
-      var cartUrl = (window.Shopify && window.Shopify.routes && window.Shopify.routes.root ? window.Shopify.routes.root : '/') + 'cart/add.js';
-
-      fetch(cartUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ id: variantId, quantity: 1 })
-      })
-        .then(function (res) {
-          if (!res.ok) {
-            return res.json().then(function (errData) {
-              throw new Error(errData.description || errData.message || 'Could not add product to bag.');
-            });
-          }
-          return res.json();
-        })
-        .then(function (item) {
-          /* Fix #4: Check stale request & section cleanup */
-          if (isSectionCleanedUp || thisRequestId !== currentCartRequestId) return;
-
-          if (btnSpan) btnSpan.textContent = 'ADDED TO BAG ✓';
-
-          cartTimerId = setTimeout(function () {
-            cartTimerId = null;
-            if (isSectionCleanedUp || thisRequestId !== currentCartRequestId) return;
-            /* Re-check current selected variant state instead of blind enable */
-            updateVariant();
-          }, 2000);
-
-          document.dispatchEvent(new CustomEvent('cart:updated', { detail: { item: item } }));
-          document.dispatchEvent(new CustomEvent('cart:refresh'));
-          if (window.Shopify && typeof window.Shopify.onItemAdded === 'function') {
-            window.Shopify.onItemAdded(item);
-          }
-        })
-        .catch(function (err) {
-          /* Fix #4: Check stale request & section cleanup */
-          if (isSectionCleanedUp || thisRequestId !== currentCartRequestId) return;
-
-          console.error('Cart add error:', err);
-          if (btnSpan) btnSpan.textContent = err.message || 'ERROR ADDING TO BAG';
-
-          cartTimerId = setTimeout(function () {
-            cartTimerId = null;
-            if (isSectionCleanedUp || thisRequestId !== currentCartRequestId) return;
-            /* Re-check current selected variant state instead of blind enable */
-            updateVariant();
-          }, 2500);
-        });
-    }
-
-    if (form) {
-      form.addEventListener('submit', handleFormSubmit);
-    }
-
-    /* Modal 1: "WHAT'S INSIDE?" Inspection Overlay */
+    /* "WHAT'S INSIDE?" Inspection Overlay Modal */
     var explodedBtn = container.querySelector('.undrskin-exploded-btn');
     var explodedModal = container.querySelector('.undrskin-exploded-modal');
     var explodedCloseBtn = container.querySelector('.undrskin-exploded-close');
@@ -733,43 +559,6 @@
     if (explodedCloseBtn) explodedCloseBtn.addEventListener('click', handleExplodedCloseClick);
     if (explodedModal) explodedModal.addEventListener('click', handleExplodedBackdropClick);
 
-    /* Modal 2: Size Guide Modal */
-    var sizeGuideTrigger = container.querySelector('.undrskin-size-guide-trigger');
-    var sizeGuideModal = container.querySelector('.undrskin-size-guide-modal');
-    var sizeGuideClose = container.querySelector('.undrskin-size-guide-close');
-
-    function openSizeGuide() {
-      if (isSectionCleanedUp || !sizeGuideModal) return;
-      if (!sizeGuideModalLock) {
-        sizeGuideModalLock = true;
-        window._undrskinScrollLockManager.acquire();
-      }
-      sizeGuideModal.classList.add('is-open');
-      sizeGuideModal.setAttribute('aria-hidden', 'false');
-      if (sizeGuideClose) sizeGuideClose.focus();
-    }
-
-    function closeSizeGuide() {
-      if (!sizeGuideModal) return;
-      if (sizeGuideModalLock) {
-        sizeGuideModalLock = false;
-        window._undrskinScrollLockManager.release();
-      }
-      sizeGuideModal.classList.remove('is-open');
-      sizeGuideModal.setAttribute('aria-hidden', 'true');
-      if (!isSectionCleanedUp && sizeGuideTrigger) sizeGuideTrigger.focus();
-    }
-
-    function handleSizeGuideTriggerClick() { openSizeGuide(); }
-    function handleSizeGuideCloseClick() { closeSizeGuide(); }
-    function handleSizeGuideBackdropClick(e) {
-      if (e.target === sizeGuideModal) closeSizeGuide();
-    }
-
-    if (sizeGuideTrigger) sizeGuideTrigger.addEventListener('click', handleSizeGuideTriggerClick);
-    if (sizeGuideClose) sizeGuideClose.addEventListener('click', handleSizeGuideCloseClick);
-    if (sizeGuideModal) sizeGuideModal.addEventListener('click', handleSizeGuideBackdropClick);
-
     /* Global Escape Key Listener */
     function handleKeyDown(e) {
       if (isSectionCleanedUp) return;
@@ -777,63 +566,27 @@
         if (explodedModal && explodedModal.classList.contains('is-open')) {
           closeExplodedModal();
         }
-        if (sizeGuideModal && sizeGuideModal.classList.contains('is-open')) {
-          closeSizeGuide();
-        }
       }
     }
     window.addEventListener('keydown', handleKeyDown);
 
-    /* Accordions */
-    var accordionHeaders = container.querySelectorAll('.undrskin-accordion-header');
-    var accordionClickHandlers = [];
-
-    accordionHeaders.forEach(function (header) {
-      function handleAccordionClick() {
-        if (isSectionCleanedUp) return;
-        var item = header.closest('.undrskin-accordion-item');
-        if (!item) return;
-        var isActive = item.classList.contains('is-active');
-        container.querySelectorAll('.undrskin-accordion-item').forEach(function (i) {
-          i.classList.remove('is-active');
-        });
-        if (!isActive) item.classList.add('is-active');
-      }
-      header.addEventListener('click', handleAccordionClick);
-      accordionClickHandlers.push({ element: header, handler: handleAccordionClick });
-    });
-
-    /* Section Cleanup Handler for Shopify Theme Editor & Dynamic Unloading */
+    /* Section Cleanup Handler */
     function cleanupSection() {
       if (isSectionCleanedUp) return;
       isSectionCleanedUp = true;
 
       container.dataset.undrskinInitialized = 'false';
 
-      /* Fix #2: Clear Three.js Retry Interval */
       if (container._undrskinCheckInterval) {
         clearInterval(container._undrskinCheckInterval);
         container._undrskinCheckInterval = null;
       }
 
-      /* Fix #4: Clear Cart Timers & Invalidate Async Tokens */
-      currentCartRequestId++;
-      if (cartTimerId) {
-        clearTimeout(cartTimerId);
-        cartTimerId = null;
-      }
-
-      /* Fix #5: Cleanly Release Scroll Locks Owned by This Section */
       if (explodedModalLock) {
         explodedModalLock = false;
         window._undrskinScrollLockManager.release();
       }
-      if (sizeGuideModalLock) {
-        sizeGuideModalLock = false;
-        window._undrskinScrollLockManager.release();
-      }
 
-      /* Fix #1: Unbind Window & Canvas Event Listeners */
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('mousemove', handleDMove);
@@ -847,15 +600,9 @@
         canvas.removeEventListener('touchend', handleDEnd);
       }
 
-      /* Unbind Form & Button Click Handlers */
-      if (form) form.removeEventListener('submit', handleFormSubmit);
       if (explodedBtn) explodedBtn.removeEventListener('click', handleExplodedBtnClick);
       if (explodedCloseBtn) explodedCloseBtn.removeEventListener('click', handleExplodedCloseClick);
       if (explodedModal) explodedModal.removeEventListener('click', handleExplodedBackdropClick);
-
-      if (sizeGuideTrigger) sizeGuideTrigger.removeEventListener('click', handleSizeGuideTriggerClick);
-      if (sizeGuideClose) sizeGuideClose.removeEventListener('click', handleSizeGuideCloseClick);
-      if (sizeGuideModal) sizeGuideModal.removeEventListener('click', handleSizeGuideBackdropClick);
 
       swatchClickHandlers.forEach(function (obj) {
         obj.element.removeEventListener('click', obj.handler);
@@ -863,14 +610,9 @@
       sizeClickHandlers.forEach(function (obj) {
         obj.element.removeEventListener('click', obj.handler);
       });
-      accordionClickHandlers.forEach(function (obj) {
-        obj.element.removeEventListener('click', obj.handler);
-      });
 
-      /* Fix #3: Unbind Scoped Document Unload Listener */
       document.removeEventListener('shopify:section:unload', handleSectionUnload);
 
-      /* Fix #9: Cancel RAF & Disconnect Observer */
       if (animId) {
         cancelAnimationFrame(animId);
         animId = null;
@@ -879,14 +621,12 @@
         observer.disconnect();
       }
 
-      /* Dispose 3D Stage */
       if (stageInstance) {
         stageInstance.destroy();
         stageInstance = null;
       }
     }
 
-    /* Fix #3: Scoped Document Unload Handler */
     function handleSectionUnload(e) {
       if (e.detail && e.detail.sectionId === container.dataset.sectionId) {
         cleanupSection();
@@ -897,7 +637,7 @@
     container._undrskinCleanup = cleanupSection;
   }
 
-  /* -------------------------------------------------- auto-boot handlers */
+  /* Boot Handlers */
   function bootAll() {
     var containers = document.querySelectorAll('.undrskin-3d-product');
     containers.forEach(function (container) {
@@ -911,7 +651,6 @@
     bootAll();
   }
 
-  // Shopify Theme Editor Section Event Listeners
   document.addEventListener('shopify:section:load', function (e) {
     var section = document.getElementById('Undrskin3D-' + e.detail.sectionId);
     if (section) initUndrskin3DSection(section);
