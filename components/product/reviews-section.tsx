@@ -121,15 +121,15 @@ export function ReviewsSection({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5 bg-[#F1E9DF] px-3 py-1.5 rounded-lg border border-[#302824]/15">
-            <span className="text-base font-mono font-medium text-[#302824]">★ {avgRating}</span>
-            <span className="text-xs text-[#302824]/70">/ 5.0</span>
+          <div className="flex items-center gap-1.5 bg-[#F1E9DF] px-4 py-2 rounded-full border border-[#302824]/15 shadow-sm">
+            <span className="text-sm font-mono font-bold text-[#302824]">★ {avgRating}</span>
+            <span className="text-xs font-mono text-[#302824]/60 font-normal">/ 5.0</span>
           </div>
 
           <button
             type="button"
             onClick={() => setIsWritingReview(!isWritingReview)}
-            className="px-5 py-2.5 bg-[#302824] hover:bg-[#7E1626] text-white text-xs uppercase tracking-widest font-medium rounded-xl transition-all shadow-sm cursor-pointer"
+            className="px-6 py-2.5 bg-[#302824] hover:bg-[#7E1626] text-[#F1E9DF] text-xs uppercase tracking-widest font-medium rounded-full transition-all shadow-sm cursor-pointer"
           >
             {isWritingReview ? 'Close Form ✕' : 'Write a Review ✎'}
           </button>
@@ -138,7 +138,7 @@ export function ReviewsSection({
 
       {/* Success Notification Banner */}
       {submitSuccess && (
-        <div className="p-4 mb-6 bg-emerald-900/20 border border-emerald-600/40 text-emerald-800 rounded-xl text-xs font-mono flex items-center justify-between shadow-sm">
+        <div className="p-4 mb-6 bg-emerald-900/20 border border-emerald-600/40 text-emerald-800 rounded-full text-xs font-mono flex items-center justify-between shadow-sm px-6">
           <span>✓ Thank you! Your review has been published and saved to Judge.me.</span>
           <button onClick={() => setSubmitSuccess(false)} className="text-emerald-900 font-bold ml-4">✕</button>
         </div>
@@ -234,7 +234,7 @@ export function ReviewsSection({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 bg-[#302824] hover:bg-[#7E1626] text-white text-xs uppercase tracking-widest font-medium rounded-xl transition-all shadow-md cursor-pointer"
+              className="px-6 py-2.5 bg-[#302824] hover:bg-[#7E1626] text-[#F1E9DF] text-xs uppercase tracking-widest font-medium rounded-full transition-all shadow-md cursor-pointer"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Review'}
             </button>
@@ -252,10 +252,10 @@ export function ReviewsSection({
             <button
               type="button"
               onClick={() => setFilterRating(null)}
-              className={`px-2.5 py-1 rounded-lg border transition-colors ${
+              className={`px-3.5 py-1 rounded-full border transition-colors ${
                 filterRating === null
-                  ? 'bg-[#302824] text-white border-[#302824]'
-                  : 'bg-[#F1E9DF] text-[#302824]/70 border-[#302824]/20 hover:text-[#302824]'
+                  ? 'bg-[#302824] text-[#F1E9DF] border-[#302824]'
+                  : 'bg-[#F1E9DF] text-[#302824]/80 border-[#302824]/20 hover:text-[#302824]'
               }`}
             >
               All
@@ -265,10 +265,10 @@ export function ReviewsSection({
                 key={star}
                 type="button"
                 onClick={() => setFilterRating(filterRating === star ? null : star)}
-                className={`px-2.5 py-1 rounded-lg border transition-colors ${
+                className={`px-3.5 py-1 rounded-full border transition-colors ${
                   filterRating === star
-                    ? 'bg-[#302824] text-white border-[#302824]'
-                    : 'bg-[#F1E9DF] text-[#302824]/70 border-[#302824]/20 hover:text-[#302824]'
+                    ? 'bg-[#302824] text-[#F1E9DF] border-[#302824]'
+                    : 'bg-[#F1E9DF] text-[#302824]/80 border-[#302824]/20 hover:text-[#302824]'
                 }`}
               >
                 {star}★
@@ -333,7 +333,7 @@ export function ReviewsSection({
               <button
                 type="button"
                 onClick={() => setVisibleCount((prev) => prev + 2)}
-                className="px-8 py-3 bg-[#302824] hover:bg-[#7E1626] text-white text-xs font-mono uppercase tracking-widest rounded-xl transition-all shadow-md cursor-pointer"
+                className="px-8 py-3 bg-[#302824] hover:bg-[#7E1626] text-[#F1E9DF] text-xs font-mono uppercase tracking-widest rounded-full transition-all shadow-md cursor-pointer"
               >
                 Show More Reviews ({displayReviews.length - visibleCount} remaining)
               </button>
@@ -352,7 +352,7 @@ export function ReviewsSection({
           <button
             type="button"
             onClick={() => setIsWritingReview(true)}
-            className="px-6 py-2.5 bg-[#302824] hover:bg-[#7E1626] text-white text-xs uppercase tracking-widest font-medium rounded-xl transition-all shadow-md cursor-pointer"
+            className="px-6 py-2.5 bg-[#302824] hover:bg-[#7E1626] text-[#F1E9DF] text-xs uppercase tracking-widest font-medium rounded-full transition-all shadow-md cursor-pointer"
           >
             Write a Review Now ✎
           </button>
