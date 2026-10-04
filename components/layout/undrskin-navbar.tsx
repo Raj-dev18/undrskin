@@ -4,45 +4,36 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/components/cart/cart-context';
-import { motion, AnimatePresence } from 'framer-motion';
+import { MobileNav } from '@/components/layout/mobile-nav';
 
-const NAV_LINKS = [
-  { label: 'THE FABRIC', href: '/#fabric', targetId: 'fabric' },
-  { label: 'THE FIT', href: '/#fit', targetId: 'fit' },
-  { label: 'BUY', href: '/#trios', targetId: 'trios' },
-  { label: 'YOUR VOICE', href: '/#reviews', targetId: 'reviews' },
-  { label: 'HIPSTER', href: '/collections', targetId: null },
+const DESKTOP_NAV_LINKS = [
+  { label: 'THE FABRIC', href: '/#fabric' },
+  { label: 'THE FIT', href: '/#fit' },
+  { label: 'BUY', href: '/#trios' },
+  { label: 'YOUR VOICE', href: '/#reviews' },
+  { label: 'HIPSTER', href: '/collections' },
 ];
 
 export function UndrSkinNavbar() {
   const { cart, openCart } = useCart();
-  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 15);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // The home page uses the canonical embedded UndrSkin experience, which
-  // owns its own single navbar. Other routes use this shared shell navbar.
-  if (pathname === '/') return null;
-
-  const handleNavClick = (link: typeof NAV_LINKS[0], e: React.MouseEvent) => {
-    setMobileMenuOpen(false);
-  };
 
   return (
     <>
       <header
         className={`site-header sticky top-0 z-40 w-full transition-all duration-300 ${
           isScrolled
-            ? 'bg-[#F1E9DF]/26 border-b border-[#302824]/16 shadow-xs'
-            : 'bg-[#F1E9DF]/14 border-b border-[#F1E9DF]/30'
+            ? 'bg-[#F1E9DF]/90 border-b border-[#302824]/15 shadow-xs'
+            : 'bg-[#F1E9DF]/80 border-b border-[#302824]/10'
         }`}
         style={{
           WebkitBackdropFilter: 'blur(18px) saturate(130%)',
@@ -51,141 +42,95 @@ export function UndrSkinNavbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
-            {/* Logo on Left */}
-            <div className="flex items-center">
-              <Link
-                href="/"
-                className="flex items-center space-x-2.5 hover:opacity-90 transition-opacity"
-                aria-label="UndrSkin home"
-              >
-                <img
-                  src="https://undrskin.in/cdn/shop/files/Gemini_Generated_Image_5wr4kj5wr4kj5wr4_1.png?v=1784465127"
-                  alt="UndrSkin"
-                  className="h-9 sm:h-11 w-auto object-contain"
-                />
-              </Link>
-            </div>
-
-            {/* Center Reference Nav Links (Desktop) */}
-            <nav className="hidden lg:flex items-center space-x-8 text-xs uppercase tracking-[0.22em] font-mono text-[#302824]/80">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  onClick={(e) => handleNavClick(link, e)}
-                  className="relative py-1 text-[#302824]/75 hover:text-[#7E1626] transition-colors group"
-                >
-                  <span>{link.label}</span>
-                  <span className="absolute left-0 right-full bottom-0 h-px bg-[#B96F73] transition-all duration-300 group-hover:right-0" />
-                </Link>
-              ))}
-            </nav>
-
-            {/* Right: BAG Button + Mobile Toggle */}
-            <div className="flex items-center space-x-3">
-              {/* Reference Pill Bag Button */}
-              <button
-                onClick={openCart}
-                className="inline-flex items-center space-x-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full border border-[rgba(48,40,36,0.22)] bg-transparent hover:border-[#B96F73] hover:bg-[#B96F73]/10 text-xs font-mono uppercase tracking-[0.18em] text-[#302824] transition-all cursor-pointer"
-                aria-label={`Open shopping bag (${cart.totalQuantity} items)`}
-              >
-                <span className="font-medium text-[11px] sm:text-xs">BAG</span>
-                <span className="min-w-4.5 h-4.5 px-1.5 rounded-full bg-[#7E1626] text-[#F3E4DD] text-[10px] font-mono font-bold flex items-center justify-center">
-                  {cart.totalQuantity}
-                </span>
-              </button>
-
-              {/* Mobile Menu Hamburger */}
+            {/* Left: Mobile Hamburger Toggle (Mobile) or Logo (Desktop) */}
+            <div className="flex items-center space-x-4">
+              {/* Mobile Hamburger Button */}
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden p-2 rounded-lg text-[#302824]/70 hover:text-[#302824] hover:bg-[#302824]/5 transition-colors"
-                aria-label="Open mobile navigation menu"
+                className="lg:hidden p-2 text-[#302824] hover:text-[#7E1626] transition-colors focus:outline-none"
+                aria-label="Open navigation menu"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5" />
                 </svg>
+              </button>
+
+              {/* Desktop Logo on Left */}
+              <div className="hidden lg:flex items-center">
+                <Link href="/" className="flex items-center space-x-2.5 hover:opacity-90 transition-opacity" aria-label="UndrSkin home">
+                  <img
+                    src="https://undrskin.in/cdn/shop/files/Gemini_Generated_Image_5wr4kj5wr4kj5wr4_1.png?v=1784465127"
+                    alt="UndrSkin"
+                    className="h-10 sm:h-12 w-auto object-contain"
+                  />
+                </Link>
+              </div>
+            </div>
+
+            {/* Center: Mobile Large Centered Brand Logo (Mobile) or Desktop Nav Links */}
+            <div className="flex items-center justify-center">
+              {/* Mobile Logo Centered */}
+              <div className="lg:hidden flex items-center justify-center">
+                <Link href="/" className="flex items-center hover:opacity-90 transition-opacity" aria-label="UndrSkin home">
+                  <img
+                    src="https://undrskin.in/cdn/shop/files/Gemini_Generated_Image_5wr4kj5wr4kj5wr4_1.png?v=1784465127"
+                    alt="UndrSkin"
+                    className="h-10 sm:h-12 w-auto object-contain"
+                  />
+                </Link>
+              </div>
+
+              {/* Desktop Center Navigation Links */}
+              <nav className="hidden lg:flex items-center space-x-8 text-xs uppercase tracking-[0.22em] font-mono text-[#302824]/80">
+                {DESKTOP_NAV_LINKS.map((link) => (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className="relative py-1 text-[#302824]/80 hover:text-[#7E1626] transition-colors group"
+                  >
+                    <span>{link.label}</span>
+                    <span className="absolute left-0 right-full bottom-0 h-px bg-[#B96F73] transition-all duration-300 group-hover:right-0" />
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            {/* Right: User Account Icon + Shopping Bag Icon with Count Badge */}
+            <div className="flex items-center space-x-4">
+              {/* Account Profile Icon */}
+              <Link
+                href="/account"
+                className="p-1.5 text-[#302824]/85 hover:text-[#7E1626] transition-colors"
+                aria-label="Account profile"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </Link>
+
+              {/* Shopping Bag Icon with Badge */}
+              <button
+                onClick={openCart}
+                className="relative p-1.5 text-[#302824]/85 hover:text-[#7E1626] transition-colors cursor-pointer"
+                aria-label={`Open shopping bag (${cart.totalQuantity} items)`}
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
+                </svg>
+                {cart.totalQuantity > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 rounded-full bg-[#302824] text-[#F1E9DF] text-[10px] font-mono font-bold flex items-center justify-center">
+                    {cart.totalQuantity}
+                  </span>
+                )}
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Clean Mobile Slide-Out Drawer */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            key="mobile-nav-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs lg:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'tween', duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed inset-y-0 left-0 w-full max-w-xs bg-[#F1E9DF] text-[#302824] p-6 shadow-2xl flex flex-col justify-between border-r border-[rgba(48,40,36,0.15)]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div>
-                {/* Header */}
-                <div className="flex items-center justify-between pb-6 border-b border-[rgba(48,40,36,0.12)]">
-                  <Link href="/" onClick={() => setMobileMenuOpen(false)} aria-label="UndrSkin home">
-                    <img
-                      src="https://undrskin.in/cdn/shop/files/Gemini_Generated_Image_5wr4kj5wr4kj5wr4_1.png?v=1784465127"
-                      alt="UndrSkin"
-                      className="h-8 w-auto object-contain"
-                    />
-                  </Link>
-                  <button
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="p-1 rounded-full text-[#302824]/60 hover:text-[#302824]"
-                    aria-label="Close navigation menu"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Navigation Links */}
-                <nav className="py-6 flex flex-col space-y-4">
-                  {NAV_LINKS.map((link) => (
-                    <Link
-                      key={link.label}
-                      href={link.href}
-                      onClick={(e) => handleNavClick(link, e)}
-                      className="text-xs uppercase tracking-[0.22em] font-mono py-2 text-[#302824]/80 hover:text-[#7E1626] transition-colors border-b border-[rgba(48,40,36,0.06)]"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-
-              {/* Drawer Footer Actions */}
-              <div className="pt-6 border-t border-[rgba(48,40,36,0.12)] space-y-3 font-mono text-xs">
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    openCart();
-                  }}
-                  className="w-full py-3 rounded-xl bg-[#302824] text-[#F1E9DF] text-xs uppercase tracking-widest font-semibold flex items-center justify-center space-x-2"
-                >
-                  <span>Shopping Bag</span>
-                  <span>({cart.totalQuantity})</span>
-                </button>
-                <p className="text-[10px] text-center text-[#302824]/60 tracking-wider">
-                  Skin-first essentials · Bamboo comfort
-                </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Mobile Drawer (4 Navigation Items: HOME, HIPSTER, YOUR VOICE, FAQ & HELP) */}
+      <MobileNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
     </>
   );
 }
