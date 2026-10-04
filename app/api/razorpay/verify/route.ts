@@ -21,10 +21,19 @@ export async function POST(request: NextRequest) {
       // Signature is valid. 
       // Trigger SMS notification if phone is available
       if (phone) {
-        await sendOrderConfirmationNotification(phone, razorpay_order_id, amount || 'the total', itemsCount || 1);
+        try {
+          await sendOrderConfirmationNotification(phone, razorpay_order_id, amount || 'the total', itemsCount || 1);
+        } catch (notifErr) {
+          console.warn('Notification delivery failed or skipped:', notifErr);
+        }
       }
       
-      return NextResponse.json({ success: true, message: 'Payment verified successfully' }, { status: 200 });
+      return NextResponse.json({
+        success: true,
+        message: 'Payment verified successfully',
+        orderId: razorpay_order_id,
+        paymentId: razorpay_payment_id,
+      }, { status: 200 });
     } else {
       return NextResponse.json({ success: false, error: 'Invalid signature' }, { status: 400 });
     }
