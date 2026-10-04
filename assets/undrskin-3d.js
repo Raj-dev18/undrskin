@@ -1,6 +1,7 @@
 /**
- * UNDRSKIN 3D SHOPIFY THEME INTEGRATION SCRIPT (assets/undrskin-3d.js)
- * Production-ready Section-Scoped WebGL Engine & Variant Handler
+ * UNDRSKIN REAL 3D GLTF PRODUCT VIEWER (assets/undrskin-3d.js)
+ * Loads real .glb models via THREE.GLTFLoader, handles variant swatches,
+ * isolated canvas touch drag/zoom, and exploded component visualization.
  */
 
 (function () {
@@ -11,13 +12,18 @@
     container.dataset.initialized = 'true';
 
     var canvas = container.querySelector('.undrskin-3d-canvas');
+    var fallbackImg = container.querySelector('.undrskin-fallback-image');
     var explodedBtn = container.querySelector('.undrskin-exploded-btn');
     var explodedModal = container.querySelector('.undrskin-exploded-modal');
     var explodedCloseBtn = container.querySelector('.undrskin-exploded-close');
     var addToBagBtn = container.querySelector('.undrskin-add-to-bag-btn');
     var form = container.querySelector('.undrskin-variant-form');
+    var rotateControlBtn = container.querySelector('[data-control="rotate"]');
+    var zoomInControlBtn = container.querySelector('[data-control="zoom-in"]');
+    var zoomOutControlBtn = container.querySelector('[data-control="zoom-out"]');
+    var resetControlBtn = container.querySelector('[data-control="reset"]');
 
-    // Parse Shopify variants JSON data
+    var modelUrl = container.dataset.modelUrl || '';
     var variantsData = [];
     var variantsScript = container.querySelector('[data-product-variants-json]');
     if (variantsScript) {
@@ -28,14 +34,18 @@
       }
     }
 
+    var threeState = null;
+
     /* --------------------------------------------------------------------------
-       1. THREE.JS 3D WEBGL ENGINE
+       1. REAL 3D GLTF MODEL LOADER & THREE.JS ENGINE
        -------------------------------------------------------------------------- */
     if (canvas && typeof THREE !== 'undefined') {
-      setupThreeJSStage(canvas, container);
+      threeState = setupGLTFEngine(canvas, container, modelUrl, fallbackImg);
+    } else if (fallbackImg) {
+      fallbackImg.classList.add('is-visible');
     }
 
-    function setupThreeJSStage(canvasEl, sectionEl) {
+    function setupGLTFEngine(canvasEl, sectionEl, glbUrl, fallbackEl) {
       var renderer = new THREE.WebGLRenderer({
         canvas: canvasEl,
         alpha: true,
@@ -43,115 +53,139 @@
         powerPreference: 'high-performance'
       });
 
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      // Cap devicePixelRatio for smooth mobile performance
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
       renderer.setSize(canvasEl.clientWidth, canvasEl.clientHeight);
+      renderer.outputEncoding = THREE.sRGBEncoding;
 
       var scene = new THREE.Scene();
       var camera = new THREE.PerspectiveCamera(35, canvasEl.clientWidth / canvasEl.clientHeight, 0.1, 100);
-      camera.position.z = 5.5;
+      camera.position.set(0, 0, 5.5);
 
       // Lights
-      var ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+      var ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
       scene.add(ambientLight);
 
-      var dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-      dirLight.position.set(5, 10, 7);
-      scene.add(dirLight);
+      var mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+      mainLight.position.set(5, 8, 5);
+      scene.add(mainLight);
 
-      var fillLight = new THREE.DirectionalLight(0xe2bc97, 0.5);
+      var fillLight = new THREE.DirectionalLight(0xe2bc97, 0.4);
       fillLight.position.set(-5, -2, -4);
       scene.add(fillLight);
 
-      // Create Garment Mesh Plane with Procedural Shaders
-      var geo = new THREE.PlaneGeometry(3.6, 2.4, 44, 32);
+      var productGroup = new THREE.Group();
+      scene.add(productGroup);
 
-      // Shader Materials & Uniforms
-      var uni = {
-        uTime: { value: 0 },
-        uHover: { value: 0 },
-        uPointer: { value: new THREE.Vector2(0, 0) },
-        uColorA: { value: new THREE.Color(0xb97073) },
-        uColorB: { value: new THREE.Color(0x7e1626) },
-        uExplode: { value: 0 }
-      };
+      var loadedModel = null;
+      var meshComponents = [];
+      var isExploded = false;
 
-      var vertShader = [
-        'uniform float uTime;',
-        'uniform float uExplode;',
-        'uniform vec2 uPointer;',
-        'varying vec2 vUv;',
-        'varying float vDisplace;',
-        'void main() {',
-        '  vUv = uv;',
-        '  vec3 pos = position;',
-        '  float wave = sin(pos.x * 2.5 + uTime * 1.5) * cos(pos.y * 2.0 + uTime * 1.2) * 0.12;',
-        '  pos.z += wave;',
-        '  pos.z += sin(length(pos.xy - uPointer) * 3.0) * 0.08;',
-        '  vDisplace = wave;',
-        '  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);',
-        '}'
-      ].join('\n');
+      // Load Real GLTF / GLB Product Model
+      if (glbUrl && typeof THREE.GLTFLoader !== 'undefined') {
+        var loader = new THREE.GLTFLoader();
+        loader.load(
+          glbUrl,
+          function (gltf) {
+            loadedModel = gltf.scene;
 
-      var fragShader = [
-        'uniform vec3 uColorA;',
-        'uniform vec3 uColorB;',
-        'uniform float uExplode;',
-        'varying vec2 vUv;',
-        'varying float vDisplace;',
-        'void main() {',
-        '  vec3 col = mix(uColorA, uColorB, vUv.y + vDisplace * 0.5);',
-        '  float rim = 1.0 - max(0.0, dot(vec3(0.0, 0.0, 1.0), vec3(vUv, 1.0)));',
-        '  col += vec3(0.15) * pow(rim, 3.0);',
-        '  gl_FragColor = vec4(col, 0.96);',
-        '}'
-      ].join('\n');
+            // Center & Scale Model
+            var box = new THREE.Box3().setFromObject(loadedModel);
+            var center = box.getCenter(new THREE.Vector3());
+            loadedModel.position.sub(center);
 
-      var mat = new THREE.ShaderMaterial({
-        vertexShader: vertShader,
-        fragmentShader: fragShader,
-        uniforms: uni,
-        transparent: true,
-        side: THREE.DoubleSide
-      });
+            var size = box.getSize(new THREE.Vector3());
+            var maxDim = Math.max(size.x, size.y, size.z);
+            if (maxDim > 0) {
+              var scale = 2.4 / maxDim;
+              loadedModel.scale.set(scale, scale, scale);
+            }
 
-      var mesh = new THREE.Mesh(geo, mat);
-      scene.add(mesh);
+            // Inspect & Index Mesh Hierarchy
+            loadedModel.traverse(function (child) {
+              if (child.isMesh) {
+                child.userData.origPosition = child.position.clone();
+                if (child.material) {
+                  child.userData.origMaterial = child.material;
+                }
+                meshComponents.push(child);
+              }
+            });
 
-      // Interactive Rotation Dragging & Touch
+            productGroup.add(loadedModel);
+            if (fallbackEl) fallbackEl.classList.remove('is-visible');
+          },
+          undefined,
+          function (err) {
+            console.warn('[UndrSkin 3D] GLB Load Failed, using fallback image:', err);
+            if (fallbackEl) fallbackEl.classList.add('is-visible');
+          }
+        );
+      } else {
+        // Create Procedural Procedural 3D Garment Mesh as robust runtime fallback
+        var geo = new THREE.CylinderGeometry(1.2, 0.9, 1.4, 32, 16, true);
+        var mat = new THREE.MeshStandardMaterial({
+          color: 0xb97073,
+          roughness: 0.5,
+          metalness: 0.1,
+          side: THREE.DoubleSide
+        });
+        loadedModel = new THREE.Mesh(geo, mat);
+
+        // Add Waistband Component Mesh
+        var waistbandGeo = new THREE.CylinderGeometry(1.22, 1.2, 0.25, 32);
+        var waistbandMat = new THREE.MeshStandardMaterial({ color: 0x7e1626, roughness: 0.4 });
+        var waistbandMesh = new THREE.Mesh(waistbandGeo, waistbandMat);
+        waistbandMesh.name = 'Waistband';
+        waistbandMesh.position.y = 0.7;
+        waistbandMesh.userData.origPosition = waistbandMesh.position.clone();
+
+        loadedModel.name = 'MainFabric';
+        loadedModel.userData.origPosition = loadedModel.position.clone();
+
+        productGroup.add(loadedModel);
+        productGroup.add(waistbandMesh);
+
+        meshComponents.push(loadedModel, waistbandMesh);
+      }
+
+      // Interactive Touch & Mouse Rotation (Isolated to Canvas)
       var isDragging = false;
-      var previousMousePosition = { x: 0, y: 0 };
+      var previousPosition = { x: 0, y: 0 };
       var targetRotation = { x: 0, y: 0 };
+      var targetZoom = 5.5;
 
       function onPointerDown(e) {
         isDragging = true;
-        previousMousePosition = {
+        previousPosition = {
           x: e.clientX || (e.touches && e.touches[0].clientX) || 0,
           y: e.clientY || (e.touches && e.touches[0].clientY) || 0
         };
       }
 
       function onPointerMove(e) {
+        if (!isDragging) return;
         var clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
         var clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
 
-        // Update Shader Pointer Uniform
-        var rect = canvasEl.getBoundingClientRect();
-        uni.uPointer.value.x = ((clientX - rect.left) / rect.width) * 2 - 1;
-        uni.uPointer.value.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-
-        if (!isDragging) return;
-
-        var deltaX = clientX - previousMousePosition.x;
-        var deltaY = clientY - previousMousePosition.y;
+        var deltaX = clientX - previousPosition.x;
+        var deltaY = clientY - previousPosition.y;
 
         targetRotation.y += deltaX * 0.008;
         targetRotation.x += deltaY * 0.008;
 
-        previousMousePosition = { x: clientX, y: clientY };
+        previousPosition = { x: clientX, y: clientY };
       }
 
       function onPointerUp() {
         isDragging = false;
+      }
+
+      function onWheel(e) {
+        // Isolated Canvas Zoom
+        e.preventDefault();
+        targetZoom += e.deltaY * 0.003;
+        targetZoom = Math.max(3.0, Math.min(8.0, targetZoom));
       }
 
       canvasEl.addEventListener('mousedown', onPointerDown);
@@ -161,6 +195,7 @@
       canvasEl.addEventListener('touchstart', onPointerDown, { passive: true });
       window.addEventListener('touchmove', onPointerMove, { passive: true });
       window.addEventListener('touchend', onPointerUp);
+      canvasEl.addEventListener('wheel', onWheel, { passive: false });
 
       // Resize Handling
       function onWindowResize() {
@@ -173,28 +208,96 @@
       }
       window.addEventListener('resize', onWindowResize);
 
-      // Animation Render Loop
-      var clock = new THREE.Clock();
-      function animate() {
-        requestAnimationFrame(animate);
-        var elapsedTime = clock.getElapsedTime();
-        uni.uTime.value = elapsedTime;
+      // Render Loop with Offscreen Pause Optimization
+      var animFrameId = null;
+      var isVisible = true;
 
-        // Smooth Rotation Dampening
-        mesh.rotation.y += (targetRotation.y - mesh.rotation.y) * 0.08;
-        mesh.rotation.x += (targetRotation.x - mesh.rotation.x) * 0.08;
+      var observer = new IntersectionObserver(function (entries) {
+        isVisible = entries[0].isIntersecting;
+      });
+      observer.observe(canvasEl);
+
+      function animate() {
+        animFrameId = requestAnimationFrame(animate);
+        if (!isVisible) return;
+
+        // Smooth Rotation Dampening & Zoom Interpolation
+        productGroup.rotation.y += (targetRotation.y - productGroup.rotation.y) * 0.08;
+        productGroup.rotation.x += (targetRotation.x - productGroup.rotation.x) * 0.08;
+        camera.position.z += (targetZoom - camera.position.z) * 0.08;
 
         renderer.render(scene, camera);
       }
       animate();
 
-      // Listen for Color Swatch Change
-      sectionEl.addEventListener('undrskin:color-change', function (e) {
-        if (e.detail && e.detail.hex) {
-          var newColor = new THREE.Color(e.detail.hex);
-          uni.uColorA.value = newColor;
+      // Controls Bar Events
+      if (rotateControlBtn) {
+        rotateControlBtn.addEventListener('click', function () {
+          targetRotation.y += Math.PI / 2;
+        });
+      }
+
+      if (zoomInControlBtn) {
+        zoomInControlBtn.addEventListener('click', function () {
+          targetZoom = Math.max(3.0, targetZoom - 0.8);
+        });
+      }
+
+      if (zoomOutControlBtn) {
+        zoomOutControlBtn.addEventListener('click', function () {
+          targetZoom = Math.min(8.0, targetZoom + 0.8);
+        });
+      }
+
+      if (resetControlBtn) {
+        resetControlBtn.addEventListener('click', function () {
+          targetRotation.x = 0;
+          targetRotation.y = 0;
+          targetZoom = 5.5;
+        });
+      }
+
+      return {
+        scene: scene,
+        renderer: renderer,
+        productGroup: productGroup,
+        meshComponents: meshComponents,
+        setMeshColor: function (hexColor) {
+          var color = new THREE.Color(hexColor);
+          meshComponents.forEach(function (child) {
+            if (child.material) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach(function (m) { m.color.set(color); });
+              } else {
+                child.material = child.material.clone();
+                child.material.color.set(color);
+              }
+            }
+          });
+        },
+        toggleExplodeView: function (shouldExplode) {
+          isExploded = shouldExplode;
+          meshComponents.forEach(function (child, idx) {
+            var origPos = child.userData.origPosition || new THREE.Vector3();
+            if (shouldExplode) {
+              var offset = new THREE.Vector3(0, (idx + 1) * 0.4, 0);
+              child.position.copy(origPos.clone().add(offset));
+            } else {
+              child.position.copy(origPos);
+            }
+          });
+        },
+        destroy: function () {
+          if (animFrameId) cancelAnimationFrame(animFrameId);
+          window.removeEventListener('resize', onWindowResize);
+          window.removeEventListener('mousemove', onPointerMove);
+          window.removeEventListener('mouseup', onPointerUp);
+          window.removeEventListener('touchmove', onPointerMove);
+          window.removeEventListener('touchend', onPointerUp);
+          observer.disconnect();
+          renderer.dispose();
         }
-      });
+      };
     }
 
     /* --------------------------------------------------------------------------
@@ -203,17 +306,27 @@
     if (explodedBtn && explodedModal) {
       explodedBtn.addEventListener('click', function () {
         explodedModal.classList.add('is-open');
+        if (threeState) threeState.toggleExplodeView(true);
       });
     }
 
     if (explodedCloseBtn && explodedModal) {
       explodedCloseBtn.addEventListener('click', function () {
         explodedModal.classList.remove('is-open');
+        if (threeState) threeState.toggleExplodeView(false);
       });
     }
 
+    // ESC Key Modal Close Accessibility
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && explodedModal && explodedModal.classList.contains('is-open')) {
+        explodedModal.classList.remove('is-open');
+        if (threeState) threeState.toggleExplodeView(false);
+      }
+    });
+
     /* --------------------------------------------------------------------------
-       3. SHOPIFY VARIANT SELECTION & ADD TO BAG API
+       3. SHOPIFY COLOR SWATCHES & VARIANT SELECTION (SCOPED TO 3D MESH ONLY)
        -------------------------------------------------------------------------- */
     var colorSwatches = container.querySelectorAll('.undrskin-swatch-btn');
     var sizeBtns = container.querySelectorAll('.undrskin-size-btn');
@@ -236,13 +349,11 @@
       if (matchedVariant) {
         if (selectedVariantInput) selectedVariantInput.value = matchedVariant.id;
 
-        // Update Price Display
         var priceEl = container.querySelector('.undrskin-price');
         if (priceEl && matchedVariant.price) {
           priceEl.textContent = formatMoney(matchedVariant.price);
         }
 
-        // Update Availability & Button State
         if (addToBagBtn) {
           if (matchedVariant.available) {
             addToBagBtn.disabled = false;
@@ -255,24 +366,21 @@
       }
     }
 
-    // Color Swatch Click Event
     colorSwatches.forEach(function (swatch) {
       swatch.addEventListener('click', function () {
         colorSwatches.forEach(function (s) { s.classList.remove('is-active'); });
         swatch.classList.add('is-active');
 
-        // Dispatch color-change event to Three.js
+        // Update ONLY the 3D Product Mesh Material Color
         var hex = swatch.dataset.hex;
-        container.dispatchEvent(new CustomEvent('undrskin:color-change', {
-          detail: { color: swatch.dataset.value, hex: hex },
-          bubbles: true
-        }));
+        if (threeState && hex) {
+          threeState.setMeshColor(hex);
+        }
 
         updateSelectedVariant();
       });
     });
 
-    // Size Button Click Event
     sizeBtns.forEach(function (btn) {
       btn.addEventListener('click', function () {
         sizeBtns.forEach(function (b) { b.classList.remove('is-active'); });
@@ -281,7 +389,9 @@
       });
     });
 
-    // Add to Bag AJAX Cart Submission
+    /* --------------------------------------------------------------------------
+       4. SHOPIFY AJAX CART ADDITION (/cart/add.js)
+       -------------------------------------------------------------------------- */
     if (form && addToBagBtn) {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -310,7 +420,6 @@
               addToBagBtn.innerHTML = '<span>ADD TO BAG</span>';
             }, 2200);
 
-            // Trigger Shopify Theme Cart Drawer refresh event if available
             document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true }));
           })
           .catch(function (err) {
@@ -322,7 +431,7 @@
     }
 
     /* --------------------------------------------------------------------------
-       4. MOBILE ACCORDION MODULE FOR EDITORIAL CARDS
+       5. MOBILE ACCORDION MODULE
        -------------------------------------------------------------------------- */
     var accordionHeaders = container.querySelectorAll('.undrskin-accordion-header');
     accordionHeaders.forEach(function (header) {
@@ -332,7 +441,6 @@
 
         var isActive = item.classList.contains('is-active');
 
-        // Close siblings
         var allItems = container.querySelectorAll('.undrskin-accordion-item');
         allItems.forEach(function (ai) { ai.classList.remove('is-active'); });
 
@@ -348,15 +456,20 @@
       }
       return '₹' + (cents / 100).toFixed(0);
     }
+
+    // Cleanup on Shopify Theme Editor Unload
+    document.addEventListener('shopify:section:unload', function (e) {
+      if (e.target && e.target.contains(container)) {
+        if (threeState) threeState.destroy();
+      }
+    });
   }
 
-  // Initialize section on DOMReady
   document.addEventListener('DOMContentLoaded', function () {
     var sections = document.querySelectorAll('.undrskin-3d-product');
     sections.forEach(initUndrskin3DSection);
   });
 
-  // Support Shopify Theme Editor Section Load Events
   document.addEventListener('shopify:section:load', function (e) {
     if (e.target && e.target.querySelector('.undrskin-3d-product')) {
       initUndrskin3DSection(e.target.querySelector('.undrskin-3d-product'));

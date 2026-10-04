@@ -1,47 +1,97 @@
 {% comment %}
   ============================================================================
-  UNDRSKIN 3D PRODUCT SECTION (sections/undrskin-3d-product.liquid)
-  Native Shopify Theme Section with 3D WebGL Viewer & Exploded View Experience
+  UNDRSKIN REAL 3D GLTF PRODUCT SECTION (sections/undrskin-3d-product.liquid)
+  Native Shopify Section loading GLTF/GLB models via Three.js & GLTFLoader
   ============================================================================
 {% endcomment %}
 
 {{ 'undrskin-3d.css' | asset_url | stylesheet_tag }}
+
+<!-- Load Three.js core and GLTFLoader once -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" defer></script>
 <script src="{{ 'undrskin-3d.js' | asset_url }}" defer></script>
 
 {% assign current_variant = product.selected_or_first_available_variant %}
+{% assign model_asset_url = 'undrskin-product.glb' | asset_url %}
 
-<section class="undrskin-3d-product" id="Undrskin3D-{{ section.id }}" data-section-id="{{ section.id }}">
+<section 
+  class="undrskin-3d-product" 
+  id="Undrskin3D-{{ section.id }}" 
+  data-section-id="{{ section.id }}"
+  data-model-url="{{ section.settings.model_url | default: model_asset_url }}"
+>
   <div class="undrskin-container">
     
-    <!-- Hero Product 2-Column Grid -->
+    <!-- Mobile Dedicated Top Info Header -->
+    <div class="undrskin-mobile-top-info" style="display: none;">
+      <div class="undrskin-eyebrow">
+        {{ section.settings.eyebrow_text | default: "EVERYDAY TRIO · PACK OF 3" }}
+      </div>
+      <h1 class="undrskin-product-title" style="margin-top: 0.25rem;">
+        {{ product.title | default: "The Bamboo Hipster" }}
+      </h1>
+    </div>
+
+    <!-- Main Hero Grid (Desktop: Left 3D, Right Details | Mobile: Top Info -> Middle 3D -> Bottom Controls) -->
     <div class="undrskin-hero-grid">
       
-      <!-- LEFT COLUMN: 3D Product Canvas Viewer -->
+      <!-- LEFT COLUMN: 3D Product Canvas & Controls -->
       <div class="undrskin-3d-stage-wrapper">
         <div class="undrskin-3d-stage">
-          <canvas class="undrskin-3d-canvas"></canvas>
+          <canvas class="undrskin-3d-canvas" aria-label="Interactive 3D product view"></canvas>
           
-          {% if section.settings.show_exploded_btn %}
-            <button type="button" class="undrskin-exploded-btn" aria-label="Explore internal product layers">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-              </svg>
-              <span>{{ section.settings.exploded_btn_label | default: "WHAT'S INSIDE?" }}</span>
-            </button>
+          <!-- Fallback Product Image -->
+          {% if product.featured_image %}
+            <img 
+              src="{{ product.featured_image | image_url: width: 800 }}" 
+              alt="{{ product.title | escape }}" 
+              class="undrskin-fallback-image"
+              loading="eager"
+            >
+          {% else %}
+            <div class="undrskin-fallback-image" style="background:#E2BC97; display:grid; place-items:center;">
+              <span style="font-family:var(--us-font-display); font-size:2rem; color:#1B1717;">UndrSkin</span>
+            </div>
           {% endif %}
+
+          <!-- Floating 3D Controls Bar -->
+          <div class="undrskin-viewer-controls">
+            <button type="button" class="undrskin-control-btn" data-control="rotate" aria-label="Rotate product">
+              <svg viewBox="0 0 24 24"><path d="M7.11 8.53L5.7 7.11C4.07 8.74 3 10.99 3 13.5c0 4.97 4.03 9 9 9 4.97 0 9-4.03 9-9 0-4.97-4.03-9-9-9-1.46 0-2.85.35-4.08.97L9.4 6.95C10.2 6.66 11.08 6.5 12 6.5c3.87 0 7 3.13 7 7s-3.13 7-7 7-7-3.13-7-7c0-1.93.78-3.68 2.11-4.97z"/></svg>
+            </button>
+            <button type="button" class="undrskin-control-btn" data-control="zoom-in" aria-label="Zoom in">
+              <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zm.5-7H9v2H7v1h2v2h1v-2h2V9h-2z"/></svg>
+            </button>
+            <button type="button" class="undrskin-control-btn" data-control="zoom-out" aria-label="Zoom out">
+              <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14zM7 9h5v1H7z"/></svg>
+            </button>
+            <button type="button" class="undrskin-control-btn" data-control="reset" aria-label="Reset view">
+              <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+            </button>
+            
+            {% if section.settings.show_exploded_btn %}
+              <button type="button" class="undrskin-exploded-btn" aria-label="Open component view">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                </svg>
+                <span>{{ section.settings.exploded_btn_label | default: "WHAT'S INSIDE?" }}</span>
+              </button>
+            {% endif %}
+          </div>
         </div>
       </div>
 
-      <!-- RIGHT COLUMN: Product Form & Selectors -->
+      <!-- RIGHT COLUMN: Commerce Form & Details Panel -->
       <div class="undrskin-details-panel">
-        <div class="undrskin-eyebrow">
-          {{ section.settings.eyebrow_text | default: "EVERYDAY TRIO · PACK OF 3" }}
+        <div class="undrskin-desktop-only">
+          <div class="undrskin-eyebrow">
+            {{ section.settings.eyebrow_text | default: "EVERYDAY TRIO · PACK OF 3" }}
+          </div>
+          <h1 class="undrskin-product-title">
+            {{ product.title | default: "The Bamboo Hipster" }}
+          </h1>
         </div>
-        
-        <h1 class="undrskin-product-title">
-          {{ product.title | default: "The Bamboo Hipster" }}
-        </h1>
 
         <div class="undrskin-price-wrapper">
           <span class="undrskin-price">
@@ -67,11 +117,11 @@
           </div>
         {% endif %}
 
-        <!-- Variant Selection Form -->
+        <!-- Shopify Variant Selection Form -->
         <form method="post" action="/cart/add" class="undrskin-variant-form" data-type="add-to-cart-form">
           <input type="hidden" name="id" value="{{ current_variant.id }}">
 
-          <!-- Colour Option Selector -->
+          <!-- Colour Variant Selector (Updates ONLY 3D Product Mesh Material) -->
           <div class="undrskin-option-group">
             <div class="undrskin-option-header">
               <span>Colourway</span>
@@ -92,7 +142,7 @@
             </div>
           </div>
 
-          <!-- Size Option Selector -->
+          <!-- Size Variant Selector -->
           <div class="undrskin-option-group">
             <div class="undrskin-option-header">
               <span>Size</span>
@@ -120,7 +170,7 @@
           </button>
         </form>
 
-        <!-- Mobile Accordions for Editorial Content -->
+        <!-- Compact Accordions for Mobile Editorial Content -->
         <div class="undrskin-accordions-wrapper">
           <div class="undrskin-accordion-item is-active">
             <button type="button" class="undrskin-accordion-header">
@@ -158,43 +208,49 @@
 
   </div>
 
-  <!-- Exploded View Fullscreen Modal -->
+  <!-- Exploded View Overlay / Modal (100dvh & safe area insets) -->
   <div class="undrskin-exploded-modal" aria-hidden="true">
     <div class="undrskin-exploded-header">
-      <h3 class="undrskin-exploded-title">Exploded Layer View</h3>
-      <button type="button" class="undrskin-exploded-close" aria-label="Close modal">&times;</button>
+      <h3 class="undrskin-exploded-title">Exploded Component View</h3>
+      <button type="button" class="undrskin-exploded-close" aria-label="Close component view">&times;</button>
     </div>
     
     <div class="undrskin-exploded-body">
       <div class="undrskin-annotation-layer">
-        <!-- Annotation Card 1: Outer Fabric -->
-        <div class="undrskin-annotation-card" style="top: 20%; left: 15%;">
-          <h4>1. Outer Fabric</h4>
-          <p>95% Bamboo Viscose woven for ultra-soft, seamless contact against skin.</p>
+        <!-- Annotation 1: Main Fabric -->
+        <div class="undrskin-annotation-card" style="top: 18%; left: 12%;">
+          <h4>1. Main Fabric</h4>
+          <p>95% Bamboo Viscose woven for ultra-soft, seamless skin contact.</p>
         </div>
 
-        <!-- Annotation Card 2: Waistband -->
-        <div class="undrskin-annotation-card" style="top: 25%; right: 15%;">
+        <!-- Annotation 2: Waistband -->
+        <div class="undrskin-annotation-card" style="top: 22%; right: 12%;">
           <h4>2. Self Waistband</h4>
-          <p>Soft double-layered bamboo fabric that holds firm without pinching.</p>
+          <p>Double-layered bamboo fabric holding firm without elastic pinching.</p>
         </div>
 
-        <!-- Annotation Card 3: Spandex Core -->
-        <div class="undrskin-annotation-card" style="bottom: 25%; left: 20%;">
-          <h4>3. 5% Spandex Stretch</h4>
+        <!-- Annotation 3: Spandex Core -->
+        <div class="undrskin-annotation-card" style="bottom: 22%; left: 15%;">
+          <h4>3. 5% Spandex Elastic</h4>
           <p>Micro-elastics providing 4-way flexibility that retains shape wear after wear.</p>
+        </div>
+
+        <!-- Annotation 4: Gusset -->
+        <div class="undrskin-annotation-card" style="bottom: 18%; right: 15%;">
+          <h4>4. Breathable Gusset</h4>
+          <p>Dual-layer breathable bamboo lining for all-day freshness.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Product Variants JSON Data Object -->
+  <!-- Product Variants JSON Data -->
   <script type="application/json" data-product-variants-json>
     {{ product.variants | json }}
   </script>
 </section>
 
-<!-- Collection Product Grid Section (3 Columns Desktop / 2 Columns Mobile) -->
+<!-- Product Collection Grid Section (3 Columns Desktop / 2 Columns Mobile) -->
 {% if section.settings.show_collection_grid %}
   <section class="undrskin-collection-section">
     <div class="undrskin-container">
@@ -205,7 +261,7 @@
 
       <div class="undrskin-product-grid">
         {% assign collection_handle = section.settings.collection | default: 'all' %}
-        {% for card_product in collections[collection_handle].products limit: 6 %}
+        {% for card_product in collections[collection_handle].products limit: 7 %}
           <a href="{{ card_product.url }}" class="undrskin-card">
             <div class="undrskin-card-image-wrapper">
               {% if card_product.featured_image %}
@@ -218,7 +274,7 @@
             </div>
           </a>
         {% else %}
-          {% for i in (1..6) %}
+          {% for i in (1..7) %}
             <div class="undrskin-card">
               <div class="undrskin-card-image-wrapper" style="background:#E2BC97; display:grid; place-items:center;">
                 <span style="font-family:var(--us-font-display); font-size:1.5rem; color:#1B1717;">UndrSkin</span>
@@ -241,6 +297,12 @@
   "tag": "section",
   "class": "undrskin-3d-section",
   "settings": [
+    {
+      "type": "text",
+      "id": "model_url",
+      "label": "Custom GLB Model URL",
+      "info": "Upload undrskin-product.glb to Shopify Files and paste the CDN URL here."
+    },
     {
       "type": "text",
       "id": "eyebrow_text",
