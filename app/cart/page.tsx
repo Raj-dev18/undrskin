@@ -1,124 +1,75 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useCart } from '@/components/cart/cart-context';
 
 export default function CartPage() {
-  const { cart, updateQuantity, removeItem } = useCart();
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const { cart, updateQuantity, removeItem, openCheckout } = useCart();
 
-  const freeShippingThreshold = 150;
-  const currentTotal = cart.cost.subtotalAmount.amount;
-  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - currentTotal);
-  const shippingProgress = Math.min(100, (currentTotal / freeShippingThreshold) * 100);
-
-  const handleCheckout = async () => {
-    if (cart.lines.length === 0 || isCheckingOut) return;
-
-    setIsCheckingOut(true);
-    setCheckoutError(null);
-
-    try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          items: cart.lines.map((line) => ({
-            variantId: line.variant.id,
-            quantity: line.quantity,
-          })),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.checkoutUrl) {
-        throw new Error(data.error || 'Failed to initialize secure checkout.');
-      }
-
-      window.location.href = data.checkoutUrl;
-    } catch (err: any) {
-      console.error('Checkout error:', err);
-      setCheckoutError(err.message || 'Unable to connect to Shopify checkout. Please try again.');
-      setIsCheckingOut(false);
-    }
-  };
+  const currencyCode = cart.cost.subtotalAmount.currencyCode || 'INR';
+  const formatMoney = (amount: number) =>
+    new Intl.NumberFormat(currencyCode === 'INR' ? 'en-IN' : 'en-US', {
+      style: 'currency',
+      currency: currencyCode,
+      minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+    }).format(amount);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
       {/* Breadcrumb */}
-      <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-neutral-500 mb-6">
-        <Link href="/" className="hover:text-white transition-colors">
+      <nav className="flex items-center space-x-2 text-xs uppercase tracking-widest text-[#302824]/60 mb-6 font-mono">
+        <Link href="/" className="hover:text-[#7E1626] transition-colors">
           Home
         </Link>
         <span>/</span>
-        <span className="text-white">Shopping Bag</span>
+        <span className="text-[#302824] font-medium">Shopping Bag</span>
       </nav>
 
-      <h1 className="text-3xl sm:text-4xl font-light text-white tracking-tight uppercase mb-8">
-        Your Shopping Bag ({cart.totalQuantity})
-      </h1>
-
-      {/* Free Shipping Meter */}
-      <div className="mb-10 p-4 bg-neutral-900/40 border border-neutral-850 max-w-xl">
-        <div className="flex items-center justify-between text-xs uppercase tracking-wider mb-2 font-mono">
-          {remainingForFreeShipping === 0 ? (
-            <span className="text-white font-medium">Complimentary Express Shipping Unlocked</span>
-          ) : (
-            <span className="text-neutral-400">
-              Add <strong className="text-white">${remainingForFreeShipping.toFixed(2)}</strong> for Free Express Delivery
-            </span>
-          )}
-          <span className="text-neutral-400">{Math.round(shippingProgress)}%</span>
-        </div>
-        <div className="w-full h-1 bg-neutral-800 overflow-hidden">
-          <div
-            className="h-full bg-white transition-all duration-500 ease-out"
-            style={{ width: `${shippingProgress}%` }}
-          />
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between mb-8 pb-4 border-b border-[rgba(48,40,36,0.12)] gap-2">
+        <h1 className="text-2xl sm:text-3xl font-light text-[#302824] tracking-tight uppercase">
+          Your Shopping Bag
+        </h1>
+        <span className="text-xs uppercase tracking-widest font-mono text-[#302824]/70">
+          {cart.totalQuantity} {cart.totalQuantity === 1 ? 'item' : 'items'}
+        </span>
       </div>
 
-      {checkoutError && (
-        <div className="mb-8 p-4 bg-red-950/40 border border-red-800 text-xs text-red-200 leading-relaxed max-w-xl">
-          {checkoutError}
-        </div>
-      )}
-
       {cart.lines.length === 0 ? (
-        <div className="py-24 text-center space-y-4 border-t border-neutral-900">
-          <div className="w-12 h-12 mx-auto rounded-full border border-neutral-800 flex items-center justify-center text-neutral-400">
+        <div className="py-20 text-center space-y-6 bg-[#F1E9DF] rounded-2xl border border-[rgba(48,40,36,0.12)] p-8">
+          <div className="w-14 h-14 mx-auto rounded-full bg-[#E8DEC8] flex items-center justify-center text-[#302824]/60">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
           </div>
-          <p className="text-xs uppercase tracking-widest text-neutral-400">
-            Your shopping bag is currently empty.
-          </p>
+          <div className="space-y-1">
+            <p className="text-sm uppercase tracking-widest text-[#302824] font-medium">
+              Your bag is currently empty
+            </p>
+            <p className="text-xs text-[#302824]/60 max-w-sm mx-auto">
+              Explore our skin-first essentials designed with breathable bamboo comfort.
+            </p>
+          </div>
           <div className="pt-2">
             <Link
               href="/collections"
-              className="inline-block px-8 py-3.5 bg-white text-black text-xs uppercase tracking-widest font-medium hover:bg-neutral-200 transition-colors"
+              className="inline-block px-8 py-3.5 btn-brand-primary text-xs uppercase tracking-widest font-medium transition-all rounded-xl shadow-md cursor-pointer"
             >
-              Explore Silhouettes
+              Explore Collection
             </Link>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* Line items list */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-4">
             {cart.lines.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-col sm:flex-row gap-6 p-6 bg-neutral-900/20 border border-neutral-800"
+                className="flex flex-col sm:flex-row gap-5 p-5 sm:p-6 bg-[#F1E9DF] rounded-2xl border border-[rgba(48,40,36,0.12)] transition-shadow hover:shadow-sm"
               >
-                <div className="relative w-28 h-36 bg-neutral-900 shrink-0 overflow-hidden">
+                <div className="relative w-24 h-32 sm:w-28 sm:h-36 bg-[#E8DEC8] rounded-xl shrink-0 overflow-hidden border border-[rgba(48,40,36,0.1)]">
                   <NextImage
                     src={item.variant.image?.url || item.product.featuredImage.url}
                     alt={item.variant.image?.altText || item.product.title}
@@ -132,42 +83,44 @@ export default function CartPage() {
                     <div className="flex justify-between items-start">
                       <Link
                         href={`/products/${item.product.handle}`}
-                        className="text-sm uppercase tracking-wider text-white hover:underline font-medium"
+                        className="text-sm uppercase tracking-wider text-[#302824] hover:text-[#7E1626] font-medium transition-colors"
                       >
                         {item.product.title}
                       </Link>
-                      <span className="text-sm font-mono text-white ml-4">
-                        ${(item.variant.price.amount * item.quantity).toFixed(2)}
+                      <span className="text-sm font-mono font-medium text-[#302824] ml-4 shrink-0">
+                        {formatMoney(item.variant.price.amount * item.quantity)}
                       </span>
                     </div>
 
-                    <div className="text-xs text-neutral-400 space-x-3">
+                    <div className="text-xs text-[#302824]/70 space-x-3">
                       {item.selectedOptions.map((opt) => (
-                        <span key={opt.name}>
-                          {opt.name}: <span className="text-neutral-200">{opt.value}</span>
+                        <span key={opt.name} className="inline-block bg-[#E8DEC8]/50 px-2 py-0.5 rounded text-[11px]">
+                          {opt.name}: <span className="font-medium text-[#302824]">{opt.value}</span>
                         </span>
                       ))}
                     </div>
 
-                    <div className="text-xs font-mono text-neutral-500">
-                      Unit price: ${item.variant.price.amount.toFixed(2)}
+                    <div className="text-xs font-mono text-[#302824]/60">
+                      Unit price: {formatMoney(item.variant.price.amount)}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4 mt-4 border-t border-neutral-850">
-                    <div className="flex items-center border border-neutral-800 bg-neutral-950">
+                  <div className="flex items-center justify-between pt-4 mt-4 border-t border-[rgba(48,40,36,0.1)]">
+                    <div className="flex items-center rounded-lg border border-[rgba(48,40,36,0.2)] bg-white overflow-hidden shadow-xs">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-white"
+                        className="w-8 h-8 flex items-center justify-center text-[#302824]/70 hover:text-[#302824] hover:bg-[#E8DEC8]/50 transition-colors"
+                        aria-label="Decrease quantity"
                       >
-                        -
+                        −
                       </button>
-                      <span className="w-10 text-center font-mono text-xs text-white">
+                      <span className="w-9 text-center font-mono text-xs text-[#302824] font-medium">
                         {item.quantity}
                       </span>
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-white"
+                        className="w-8 h-8 flex items-center justify-center text-[#302824]/70 hover:text-[#302824] hover:bg-[#E8DEC8]/50 transition-colors"
+                        aria-label="Increase quantity"
                       >
                         +
                       </button>
@@ -175,7 +128,7 @@ export default function CartPage() {
 
                     <button
                       onClick={() => removeItem(item.id)}
-                      className="text-xs uppercase tracking-wider text-neutral-400 hover:text-neutral-200"
+                      className="text-xs uppercase tracking-wider text-[#302824]/60 hover:text-[#7E1626] font-medium transition-colors cursor-pointer"
                     >
                       Remove
                     </button>
@@ -186,54 +139,60 @@ export default function CartPage() {
           </div>
 
           {/* Order Summary Sticky Panel */}
-          <div className="lg:col-span-4 p-6 bg-neutral-900/30 border border-neutral-800 space-y-6 lg:sticky lg:top-28">
-            <h3 className="text-xs uppercase tracking-[0.25em] text-white font-medium border-b border-neutral-800 pb-4">
+          <div className="lg:col-span-4 p-6 bg-[#F1E9DF] rounded-2xl border border-[rgba(48,40,36,0.15)] space-y-6 lg:sticky lg:top-28 shadow-sm">
+            <h3 className="text-xs uppercase tracking-[0.25em] text-[#302824] font-semibold border-b border-[rgba(48,40,36,0.12)] pb-4">
               Order Summary
             </h3>
 
-            <div className="space-y-3 text-xs text-neutral-400">
+            <div className="space-y-3 text-xs text-[#302824]/80">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span className="font-mono text-white">
-                  ${cart.cost.subtotalAmount.amount.toFixed(2)}
+                <span className="font-mono font-medium text-[#302824]">
+                  {cart.cost.formattedSubtotalAmount}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span>Estimated Shipping</span>
-                <span className="font-mono text-neutral-300">
-                  {remainingForFreeShipping === 0 ? 'Complimentary' : 'Calculated at Checkout'}
+              <div className="flex justify-between items-center">
+                <span>Standard Delivery</span>
+                <span className="font-mono text-xs font-medium text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded">
+                  Complimentary
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between text-[11px] text-[#302824]/60">
                 <span>Duties & Taxes</span>
-                <span className="font-mono text-neutral-300">Included</span>
+                <span>Included in subtotal</span>
               </div>
             </div>
 
-            <div className="border-t border-neutral-800 pt-4 flex justify-between text-sm text-white font-medium">
+            <div className="border-t border-[rgba(48,40,36,0.15)] pt-4 flex justify-between items-baseline text-sm text-[#302824] font-semibold">
               <span className="uppercase tracking-wider">Estimated Total</span>
-              <span className="font-mono">${cart.cost.subtotalAmount.amount.toFixed(2)}</span>
+              <span className="font-mono text-base text-[#7E1626]">
+                {cart.cost.formattedSubtotalAmount}
+              </span>
             </div>
 
             <button
-              onClick={handleCheckout}
-              disabled={isCheckingOut}
-              className="w-full py-4 bg-white text-black text-xs uppercase tracking-widest font-medium hover:bg-neutral-200 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+              onClick={openCheckout}
+              className="w-full py-4 btn-brand-primary text-xs uppercase tracking-widest font-semibold transition-all rounded-xl shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 cursor-pointer"
             >
-              {isCheckingOut ? (
-                <span className="flex items-center space-x-2">
-                  <div className="w-3.5 h-3.5 border border-black border-t-transparent rounded-full animate-spin" />
-                  <span>Connecting to Shopify Checkout...</span>
-                </span>
-              ) : (
-                <span>Proceed to Checkout</span>
-              )}
+              <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <span>Proceed to Checkout</span>
             </button>
 
-            <div className="text-[10px] uppercase tracking-wider text-neutral-400 font-mono space-y-1 pt-2">
-              <p>• Secured 256-Bit SSL Shopify Payment</p>
-              <p>• Complimentary Global Shipping over $150</p>
-              <p>• 30-Day Discreet Returns & Exchanges</p>
+            <div className="text-[10px] uppercase tracking-wider text-[#302824]/60 font-mono space-y-1.5 pt-2 border-t border-[rgba(48,40,36,0.1)]">
+              <p className="flex items-center space-x-1.5">
+                <span>🔒</span>
+                <span>Razorpay Secure · 256-Bit SSL Encrypted</span>
+              </p>
+              <p className="flex items-center space-x-1.5">
+                <span>📦</span>
+                <span>Discreet & Eco-Friendly Packaging</span>
+              </p>
+              <p className="flex items-center space-x-1.5">
+                <span>🌿</span>
+                <span>Skin-First Bamboo Fabric Guarantee</span>
+              </p>
             </div>
           </div>
         </div>
